@@ -1,118 +1,119 @@
-const btn = document.getElementById("btn-mic");
+/* =====================================================
+   TEST SAISIE VOCALE – PIÈCES (2 COLONNES)
+   - Contexte (bâtiment/logement/appartement) ≠ quantités
+   - Quantités uniquement si explicites: "deux chambres", "3 bureaux"
+   - Pas de liste fermée de pièces
+   ===================================================== */
+
+const btnMic = document.getElementById("btn-mic");
+const btnParse = document.getElementById("btn-parse");
+const btnClear = document.getElementById("btn-clear");
+const btnCopy = document.getElementById("btn-copy");
+
 const rawText = document.getElementById("raw-text");
 const result = document.getElementById("result");
 
 /* ===== RECONNAISSANCE VOCALE ===== */
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-if (!SpeechRecognition) {
-  alert("Reconnaissance vocale non supportée sur ce navigateur");
+let recognition = null;
+
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.lang = "fr-FR";
+  recognition.interimResults = false;
+  recognition.continuous = false;
+
+  recognition.onresult = (e) => {
+    const texte = e.results[0][0].transcript || "";
+    rawText.value = texte;
+    runParse();
+  };
+
+  recognition.onerror = (e) => {
+    alert("Erreur dictée : " + (e.error || "inconnue"));
+  };
+} else {
+  btnMic.disabled = true;
+  btnMic.textContent = "🎤 Dictée non supportée";
 }
 
-const recognition = new SpeechRecognition();
-recognition.lang = "fr-FR";
-recognition.interimResults = false;
-recognition.continuous = false;
+/* ===== UI actions ===== */
+btnMic.addEventListener("click", () => recognition && recognition.start());
+btnParse.addEventListener("click", runParse);
+btnClear.addEventListener("click", () => {
+  rawText.value = "";
+  result.innerHTML = "";
+});
 
-btn.onclick = () => recognition.start();
+btnCopy.addEventListener("click", async () => {
+  const items = parseVoiceToBatimentPieces(rawText.value || "");
+  const grouped = groupByBatiment(items);
+  const payload = { items, grouped };
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+    btnCopy.textContent = "✅ Copié";
+    setTimeout(() => (btnCopy.textContent = "📋 Copier JSON"), 900);
+  } catch {
+    alert("Copie impossible (droits navigateur).");
+  }
+});
 
-recognition.onresult = (e) => {
-  const texte = e.results[0][0].transcript;
-  rawText.value = texte;
-
-  const items = parseVoiceToBatimentPieces(texte); // [{batiment, piece}, ...]
+function runParse() {
+  const items = parseVoiceToBatimentPieces(rawText.value || "");
   renderTwoLevels(items);
-};
+}
 
 /* =========================================================
-   PARSING GÉNÉRIQUE : 2 colonnes { batiment, piece }
-   - pas de liste prédéfinie de pièces
-   - quantités uniquement si "2 X" ou "deux X"
-   - "logement 2" ne doit jamais impacter les quantités
+   PARSING : 2 colonnes { batiment, piece }
    ========================================================= */
-
 function parseVoiceToBatimentPieces(text) {
-  // 1) Normalisation douce (on garde accents, utile pour l’affichage)
-  const original = (text || "").trim();
+  if (!text || typeof text !== "string") return [];
+
+  const original = text.trim();
   const lower = original.toLowerCase();
 
-  // 2) Contexte "bâtiment / logement / appartement / lot / étage" => 1 seule chaîne
-  const ctx = extractContext(lower, original); // retourne une string déjà "propre"
+  // 1) Contexte (bâtiment / logement / appartement / lot) — chiffres ici NE sont PAS des quantités
+  const ctx = extractContext(lower);
 
-  // 3) On récupère la partie “liste des pièces” (après verbes type "il y a", "nous avons"...)
+  // 2) Partie "liste des pièces" (après déclencheurs)
   const listPart = extractListPart(lower, original);
 
-  // 4) On découpe la liste en items (générique)
+  // 3) Découpage générique en segments "pièces"
   const rawPieces = splitPieces(listPart);
 
-  // 5) Expansion des quantités, uniquement si explicite "2 chambres" / "deux chambres"
+  // 4) Expansion des quantités uniquement si collées à une pièce ("2 chambres", "deux chambres")
   const expanded = expandQuantities(rawPieces);
 
-  // 6) Sortie finale (2 colonnes)
+  // 5) Sortie finale 2 colonnes
   return expanded
-    .map(p => cleanPieceLabel(p))
+    .map(cleanLabel)
     .filter(Boolean)
     .map(piece => ({ batiment: ctx, piece }));
 }
 
-/* ====== CONTEXTE ======
-   On veut une sortie du style :
-   - "Bâtiment A, logement 2"
-   - "Appartement 12"
-   - "Lot 5, Étage 2"
-   - "Bâtiment B, RDC"
-*/
-function extractContext(lower, original) {
+/* ===== Contexte ===== */
+function extractContext(lower) {
   const parts = [];
 
   // bâtiment A / bâtiment 1
-  const bat = lower.match(/\bb[âa]timent\s+([a-z0-9]+)/i);
-  if (bat) parts.push(`Bâtiment ${bat[1].toUpperCase()}`);
+  const bat = lower.match(/\b(bâtiment|batiment)\s+([a-z0-9]+)/i);
+  if (bat) parts.push(`Bâtiment ${String(bat[2]).toUpperCase()}`);
 
-  // logement 2
-  const log = lower.match(/\blogement\s+([0-9a-z]+)/i);
-  if (log) parts.push(`logement ${log[1]}`);
+  const log = lower.match(/\blogement\s+([a-z0-9]+)/i);
+  if (log) parts.push(`logement ${String(log[1])}`);
 
-  // appartement 12
-  const apt = lower.match(/\bappartement\s+([0-9a-z]+)/i);
-  if (apt) parts.push(`Appartement ${apt[1]}`);
+  const apt = lower.match(/\bappartement\s+([a-z0-9]+)/i);
+  if (apt) parts.push(`Appartement ${String(apt[1])}`);
 
-  // lot 5
-  const lot = lower.match(/\blot\s+([0-9a-z]+)/i);
-  if (lot) parts.push(`Lot ${lot[1]}`);
+  const lot = lower.match(/\blot\s+([a-z0-9]+)/i);
+  if (lot) parts.push(`Lot ${String(lot[1])}`);
 
-  // niveau / étage (optionnel)
-  const niv = normalizeLevel(lower);
-  if (niv) parts.push(niv);
-
-  // fallback si rien
-  if (!parts.length) return "Contexte NC";
-
-  // cas où on a bâtiment + appartement : on garde les 2 si dictée comme ça
-  // ex: "bâtiment A appartement 12" -> "Bâtiment A, Appartement 12"
-  // On assemble avec virgules pour correspondre à ton attente.
-  return parts.join(", ");
+  return parts.length ? parts.join(", ") : "Non communiqué";
 }
 
-function normalizeLevel(lower) {
-  // on n’utilise PAS de liste de bâtiments, seulement des patterns très génériques
-  if (/\brez[-\s]?de[-\s]?chauss[ée]e\b|\brez\b|\brdc\b|\brez de jardin\b/i.test(lower)) return "RDC";
-  const rplus = lower.match(/\br\+\s*([0-9]+)/i);
-  if (rplus) return `Étage ${rplus[1]}`;
-  const etageNum = lower.match(/\b[ée]tage\s*([0-9]+)/i);
-  if (etageNum) return `Étage ${etageNum[1]}`;
-  if (/\bpremier\b.*\b[ée]tage\b|\b1er\b.*\b[ée]tage\b/i.test(lower)) return "Étage 1";
-  if (/\bdeuxi[èe]me\b.*\b[ée]tage\b|\b2e\b.*\b[ée]tage\b/i.test(lower)) return "Étage 2";
-  if (/\btroisi[èe]me\b.*\b[ée]tage\b|\b3e\b.*\b[ée]tage\b/i.test(lower)) return "Étage 3";
-  return "";
-}
-
-/* ====== EXTRACTION LISTE PIÈCES ======
-   On cherche la partie après des déclencheurs :
-   "nous avons", "il y a", "on a", "on trouve", "comprend", ":"...
-*/
+/* ===== Zone liste pièces ===== */
 function extractListPart(lower, original) {
-  // on découpe sur des déclencheurs, on prend ce qu’il y a après le dernier trouvé
   const triggers = [
     "nous avons",
     "il y a",
@@ -131,32 +132,22 @@ function extractListPart(lower, original) {
     if (i > idx) { idx = i; trigLen = t.length; }
   });
 
-  if (idx === -1) return original; // pas de déclencheur => on tente tout
-
+  if (idx === -1) return original;
   return original.slice(idx + trigLen).trim();
 }
 
-/* ====== SPLIT LISTE EN PIÈCES (générique) ======
-   - coupe sur virgules, points, "et", ";"
-   - garde les groupes utiles
-*/
+/* ===== Split items ===== */
 function splitPieces(listPart) {
   if (!listPart) return [];
 
-  // On remplace " et " par virgule pour uniformiser
-  let s = listPart.replace(/\bet\b/gi, ",");
-  // On coupe sur ponctuation
-  const chunks = s.split(/[,.;\n]+/).map(x => x.trim()).filter(Boolean);
+  let s = listPart;
+  s = s.replace(/\bet\b/gi, ",");
 
-  // enlève des stopwords de début type "une", "un", "des" pour améliorer l’affichage
+  const chunks = s.split(/[,.;\n]+/).map(x => x.trim()).filter(Boolean);
   return chunks.map(c => c.replace(/^(une|un|des|du|de la|de l’|de l'|d’|d')\s+/i, "").trim());
 }
 
-/* ====== QUANTITÉS ======
-   IMPORTANT : on n’emploie un nombre QUE si il est juste devant un nom de pièce.
-   Ex: "2 chambres" => OK
-   Ex: "logement 2" => ne passe jamais ici (car c’est dans le contexte, pas dans la liste)
-*/
+/* ===== Quantités (strict) ===== */
 function expandQuantities(items) {
   const out = [];
 
@@ -174,77 +165,81 @@ function expandQuantities(items) {
   };
 
   items.forEach(it => {
-    // pattern explicite "2 chambres" ou "deux chambres"
-    // -> quantité = 2, libellé = "chambres" -> "Chambre 1", "Chambre 2"
-    const m = it.match(/^\s*(\d+|un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix)\s+(.+)\s*$/i);
+    const t = it.trim();
+    if (!t) return;
+
+    // ignore segments that are actually context
+    if (/\b(bâtiment|batiment|logement|appartement|lot)\b/i.test(t)) return;
+
+    // quantité uniquement au début du segment
+    const m = t.match(/^\s*(\d+|un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix)\s+(.+)\s*$/i);
 
     if (m) {
-      const qRaw = m[1].toLowerCase();
-      const labelRaw = m[2].trim();
+      const qRaw = String(m[1]).toLowerCase();
+      const labelRaw = String(m[2]).trim();
+      if (!labelRaw) return;
 
       const qty = /^\d+$/.test(qRaw) ? parseInt(qRaw, 10) : (wordsToNum[qRaw] || 1);
 
-      // si qty > 1 : on numérote, sinon on garde tel quel
       if (qty > 1) {
-        const singular = singularize(labelRaw);
-        for (let i = 1; i <= qty; i++) out.push(`${singular} ${i}`);
+        const base = singularize(labelRaw);
+        for (let i = 1; i <= qty; i++) out.push(`${base} ${i}`);
       } else {
         out.push(labelRaw);
       }
       return;
     }
 
-    // pas de quantité explicite => pièce simple
-    out.push(it);
+    out.push(t);
   });
 
   return out;
 }
 
-/* singularisation simple (suffisant pour chambre(s), bureau(x), etc.)
-   si ça ne singularise pas bien, ce n’est pas grave : "Chambres 1" reste compréhensible.
-*/
 function singularize(label) {
   const s = label.trim();
-  // cas basique "chambres" -> "chambre"
   if (s.endsWith("s") && s.length > 3) return s.slice(0, -1);
   return s;
 }
 
-function cleanPieceLabel(p) {
-  if (!p) return "";
-  return p
+function cleanLabel(s) {
+  return String(s || "")
     .replace(/\s+/g, " ")
-    .trim()
     .replace(/^\-+/, "")
     .trim();
 }
 
 /* =========================================================
-   AFFICHAGE 2 NIVEAUX (une carte par contexte)
+   AFFICHAGE 2 NIVEAUX
    ========================================================= */
-function renderTwoLevels(items) {
-  result.innerHTML = "";
-
-  if (!items || !items.length) {
-    result.innerHTML = "<p>Aucune pièce détectée</p>";
-    return;
-  }
-
-  // group by contexte (batiment)
+function groupByBatiment(items) {
   const grouped = {};
   items.forEach(it => {
     if (!grouped[it.batiment]) grouped[it.batiment] = [];
     grouped[it.batiment].push(it.piece);
   });
+  return grouped;
+}
+
+function renderTwoLevels(items) {
+  result.innerHTML = "";
+
+  if (!items || items.length === 0) {
+    result.innerHTML = "<div class='ctx'><div class='ctx-title'>Aucun résultat</div><div>Dicte ou colle une phrase contenant “nous avons …”</div></div>";
+    return;
+  }
+
+  const grouped = groupByBatiment(items);
 
   Object.keys(grouped).forEach(ctx => {
     const div = document.createElement("div");
-    div.className = "card";
+    div.className = "ctx";
+
+    const pieces = grouped[ctx] || [];
     div.innerHTML = `
-      <strong>${ctx}</strong>
+      <div class="ctx-title">${escapeHtml(ctx)} <span class="badge">${pieces.length}</span></div>
       <ul>
-        ${grouped[ctx].map(p => `<li>${escapeHtml(p)}</li>`).join("")}
+        ${pieces.map(p => `<li>${escapeHtml(p)}</li>`).join("")}
       </ul>
     `;
     result.appendChild(div);
