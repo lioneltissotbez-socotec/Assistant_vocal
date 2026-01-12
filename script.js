@@ -1,7 +1,12 @@
+/* =====================================================
+   TEST SAISIE VOCALE – PIÈCES (2 NIVEAUX)
+   ===================================================== */
+
 const btn = document.getElementById("btn-mic");
 const rawText = document.getElementById("raw-text");
 const result = document.getElementById("result");
 
+/* ===== RECONNAISSANCE VOCALE ===== */
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -14,111 +19,94 @@ recognition.lang = "fr-FR";
 recognition.interimResults = false;
 recognition.continuous = false;
 
-btn.onclick = () => {
-  recognition.start();
-};
+btn.onclick = () => recognition.start();
 
 recognition.onresult = e => {
   const texte = e.results[0][0].transcript;
   rawText.value = texte;
-  analyseTexte(texte);
+
+  const parsed = parsePiecesVocales(texte);
+  renderResult(parsed);
 };
 
-function analyseTexte(texte) {
-  result.innerHTML = "";
+/* =====================================================
+   PARSING VOCAL → STRUCTURE { batiment, piece }
+   ===================================================== */
 
-  const clean = texte.toLowerCase();
-
-  const batMatch = clean.match(/bâtiment\s+([a-z0-9]+)/i);
-  const batiment = batMatch ? batMatch[1].toUpperCase() : "NC";
-
-  let niveau = "NC";
-
-  const niveaux = [
-    { key: "rez", label: "RDC" },
-    { key: "premier étage", label: "Étage 1" },
-    { key: "deuxième étage", label: "Étage 2" },
-    { key: "troisième étage", label: "Étage 3" }
-  ];
-
-  const piecesConnues = [
-    "cuisine", "salon", "séjour", "chambre",
-    "wc", "toilettes", "couloir",
-    "dégagement", "salle de bain", "mezzanine"
-  ];
-
-  const lignes = clean.split(/\.|,/);
-
-  lignes.forEach(ligne => {
-    niveaux.forEach(n => {
-      if (ligne.includes(n.key)) {
-        niveau = n.label;
-      }
-    });
-
-    piecesConnues.forEach(p => {
-      if (ligne.includes(p)) {
-        afficher({
-          batiment,
-          niveau,
-          piece: p
-        });
-      }
-    });
-  });
-}
 function parsePiecesVocales(texte) {
   const clean = texte.toLowerCase();
   const results = [];
 
-  // ===== 1. BÂTIMENT / APPARTEMENT =====
+  /* ===== 1. BÂTIMENT / APPARTEMENT ===== */
   let batiment = "NC";
 
   const batMatch = clean.match(/bâtiment\s+([a-z0-9]+)/i);
   const aptMatch = clean.match(/appartement\s+([a-z0-9]+)/i);
 
-  if (batMatch) batiment = `Bâtiment ${batMatch[1].toUpperCase()}`;
-  if (aptMatch) batiment = `Appartement ${aptMatch[1]}`;
+  if (aptMatch) {
+    batiment = `Appartement ${aptMatch[1]}`;
+  } else if (batMatch) {
+    batiment = `Bâtiment ${batMatch[1].toUpperCase()}`;
+  }
 
-  // ===== 2. NIVEAU =====
-  let niveau = "";
+  /* ===== 2. NIVEAU (INTÉGRÉ AU BÂTIMENT) ===== */
+  const niveaux = [
+    { keys: ["rez-de-chaussée", "rez de chaussée", "rez"], label: "RDC" },
+    { keys: ["premier étage", "1er étage", "premier"], label: "Étage 1" },
+    { keys: ["deuxième étage", "2e étage", "second"], label: "Étage 2" },
+    { keys: ["troisième étage", "3e étage"], label: "Étage 3" }
+  ];
 
-  NIVEAUX.forEach(n => {
+  niveaux.forEach(n => {
     n.keys.forEach(k => {
-      if (clean.includes(k)) niveau = n.label;
+      if (clean.includes(k)) {
+        batiment += ` – ${n.label}`;
+      }
     });
   });
 
-  if (niveau) batiment += ` – ${niveau}`;
+  /* ===== 3. PIÈCES ET QUANTITÉS ===== */
+  const piecesConnues = [
+    "entrée", "cuisine", "séjour", "salon",
+    "couloir", "dégagement",
+    "wc", "toilettes",
+    "salle de bain", "salle d'eau",
+    "chambre", "mezzanine"
+  ];
 
-  // ===== 3. DÉCOUPAGE PAR PHRASES =====
-  const segments = clean.split(/,|\.|et/);
+  const nombres = {
+    "un": 1, "une": 1,
+    "deux": 2,
+    "trois": 3,
+    "quatre": 4,
+    "cinq": 5
+  };
+
+  const segments = clean.split(/,|\.| et /);
 
   segments.forEach(seg => {
-    PIECES.forEach(piece => {
+    piecesConnues.forEach(piece => {
       if (seg.includes(piece)) {
 
-        // ===== 4. GESTION DES QUANTITÉS =====
         let qty = 1;
 
-        Object.keys(NOMBRES).forEach(n => {
-          if (seg.includes(n)) qty = NOMBRES[n];
+        // nombres en lettres
+        Object.keys(nombres).forEach(n => {
+          if (seg.includes(n)) qty = nombres[n];
         });
 
-        if (seg.match(/\d+/)) {
-          qty = parseInt(seg.match(/\d+/)[0], 10);
-        }
+        // nombres en chiffres
+        const numMatch = seg.match(/\d+/);
+        if (numMatch) qty = parseInt(numMatch[0], 10);
 
-        // ===== 5. GÉNÉRATION DES PIÈCES =====
+        // création des pièces
         for (let i = 1; i <= qty; i++) {
-          const nomPiece =
-            qty > 1
-              ? `${capitalize(piece)} ${i}`
-              : capitalize(piece);
-
           results.push({
             batiment,
-            piece: nomPiece
+            piece:
+              qty > 1
+                ? `${capitalize(piece)} ${i}`
+                : capitalize(piece)
           });
         }
       }
@@ -132,13 +120,36 @@ function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function afficher(obj) {
-  const div = document.createElement("div");
-  div.className = "card";
-  div.innerHTML = `
-    <strong>Bâtiment :</strong> ${obj.batiment}<br>
-    <strong>Niveau :</strong> ${obj.niveau}<br>
-    <strong>Pièce :</strong> ${obj.piece}
-  `;
-  result.appendChild(div);
+/* =====================================================
+   AFFICHAGE STRUCTURÉ – 2 NIVEAUX
+   ===================================================== */
+
+function renderResult(items) {
+  result.innerHTML = "";
+
+  if (!items.length) {
+    result.innerHTML = "<p>Aucune pièce détectée</p>";
+    return;
+  }
+
+  // regroupement par bâtiment
+  const grouped = {};
+  items.forEach(it => {
+    if (!grouped[it.batiment]) grouped[it.batiment] = [];
+    grouped[it.batiment].push(it.piece);
+  });
+
+  Object.keys(grouped).forEach(bat => {
+    const div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `
+      <strong>${bat}</strong>
+      <ul>
+        ${grouped[bat].map(p => `<li>${p}</li>`).join("")}
+      </ul>
+    `;
+
+    result.appendChild(div);
+  });
 }
