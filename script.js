@@ -67,6 +67,70 @@ function analyseTexte(texte) {
     });
   });
 }
+function parsePiecesVocales(texte) {
+  const clean = texte.toLowerCase();
+  const results = [];
+
+  // ===== 1. BÂTIMENT / APPARTEMENT =====
+  let batiment = "NC";
+
+  const batMatch = clean.match(/bâtiment\s+([a-z0-9]+)/i);
+  const aptMatch = clean.match(/appartement\s+([a-z0-9]+)/i);
+
+  if (batMatch) batiment = `Bâtiment ${batMatch[1].toUpperCase()}`;
+  if (aptMatch) batiment = `Appartement ${aptMatch[1]}`;
+
+  // ===== 2. NIVEAU =====
+  let niveau = "";
+
+  NIVEAUX.forEach(n => {
+    n.keys.forEach(k => {
+      if (clean.includes(k)) niveau = n.label;
+    });
+  });
+
+  if (niveau) batiment += ` – ${niveau}`;
+
+  // ===== 3. DÉCOUPAGE PAR PHRASES =====
+  const segments = clean.split(/,|\.|et/);
+
+  segments.forEach(seg => {
+    PIECES.forEach(piece => {
+      if (seg.includes(piece)) {
+
+        // ===== 4. GESTION DES QUANTITÉS =====
+        let qty = 1;
+
+        Object.keys(NOMBRES).forEach(n => {
+          if (seg.includes(n)) qty = NOMBRES[n];
+        });
+
+        if (seg.match(/\d+/)) {
+          qty = parseInt(seg.match(/\d+/)[0], 10);
+        }
+
+        // ===== 5. GÉNÉRATION DES PIÈCES =====
+        for (let i = 1; i <= qty; i++) {
+          const nomPiece =
+            qty > 1
+              ? `${capitalize(piece)} ${i}`
+              : capitalize(piece);
+
+          results.push({
+            batiment,
+            piece: nomPiece
+          });
+        }
+      }
+    });
+  });
+
+  return results;
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
 
 function afficher(obj) {
   const div = document.createElement("div");
