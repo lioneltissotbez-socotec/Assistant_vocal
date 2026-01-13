@@ -1,64 +1,545 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-  <title>LICIEL - Saisie Terrain</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Dictée Diagnostic — Bâtiment/Pièces (Offline)</title>
+<style>
+  :root{
+    --bg:#0b1220; --card:#111a2e; --muted:#9fb0d0; --txt:#eaf0ff;
+    --acc:#3aa0ff; --danger:#ff3b3b; --ok:#35d07f; --line:#223056;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#070c16, #0b1220);color:var(--txt);
+       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  .wrap{max-width:720px;margin:0 auto;padding:14px}
+  .card{background:rgba(17,26,46,.92);border:1px solid rgba(255,255,255,.06);
+        border-radius:16px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  h1{font-size:18px;margin:0 0 10px}
+  .grid{display:grid;gap:12px}
+  .field{display:grid;gap:8px}
+  label{font-size:12px;color:var(--muted)}
+  .inputRow{display:flex;gap:8px;align-items:stretch}
+  input, textarea{
+    width:100%; background:#0a1020; color:var(--txt);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:12px; padding:12px; font-size:16px; outline:none;
+  }
+  textarea{min-height:110px;resize:vertical}
+  input:focus, textarea:focus{border-color:rgba(58,160,255,.65); box-shadow:0 0 0 3px rgba(58,160,255,.18)}
+  .btn{
+    width:100%; border:0; border-radius:14px; padding:14px 12px;
+    font-size:16px; font-weight:700; color:#061024; background:var(--acc);
+    touch-action:manipulation;
+  }
+  .btnRow{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .btn.secondary{background:#1b2a4f;color:var(--txt);border:1px solid rgba(255,255,255,.10)}
+  .btn.danger{background:var(--danger); color:#fff}
+  .btn:active{transform:translateY(1px)}
+  .iconBtn{
+    width:52px; min-width:52px; border-radius:12px; border:1px solid rgba(255,255,255,.12);
+    background:#0a1020; color:var(--txt); font-size:18px; font-weight:800;
+  }
+  .toolbar{display:grid; gap:10px; margin-top:10px}
+  .mic{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    background:var(--acc); color:#061024;
+  }
+  .mic.listening{background:var(--danger); color:#fff; animation:pulse 1s infinite}
+  @keyframes pulse{0%{filter:brightness(1)}50%{filter:brightness(1.25)}100%{filter:brightness(1)}}
+
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;
+        border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.18);color:var(--muted);font-size:12px}
+
+  table{width:100%;border-collapse:separate;border-spacing:0;margin-top:10px;overflow:hidden}
+  thead th{
+    text-align:left;font-size:12px;color:var(--muted);
+    padding:10px;border-bottom:1px solid var(--line);
+  }
+  tbody td{padding:10px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+  tbody tr:hover{background:rgba(255,255,255,.03)}
+  td[contenteditable="true"]{border-radius:10px}
+  td[contenteditable="true"]:focus{outline:none; box-shadow:0 0 0 3px rgba(58,160,255,.18); background:rgba(10,16,32,.65)}
+  .actions{display:flex;gap:8px}
+  .miniBtn{
+    border:1px solid rgba(255,255,255,.14); background:#0a1020; color:var(--txt);
+    border-radius:10px; padding:8px 10px; font-size:16px;
+  }
+  .miniBtn:hover{border-color:rgba(58,160,255,.6)}
+  .footerRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+  .hint{font-size:12px;color:var(--muted);line-height:1.35}
+</style>
 </head>
 <body>
-  <header class="app-header">
-    <div class="title">🎙️ Diagnostic Terrain - LICIEL</div>
-    <div class="subtitle">Saisie structurée & persistante</div>
-  </header>
+<div class="wrap">
+  <div class="card grid">
+    <h1>Dictée Diagnostic — Bâtiment / Pièces (offline)</h1>
 
-  <main class="app-main">
-    <section class="card">
-      <div class="input-group">
-        <label for="ctx-text">📍 Bâtiment / Logement / Localisation</label>
-        <div class="input-with-clear">
-          <input type="text" id="ctx-text" placeholder="Ex: Bâtiment A logement 2 RDC" class="input-field">
-          <button class="btn-clear-field" onclick="clearField('ctx-text')">✕</button>
+    <div class="grid">
+      <div class="field">
+        <label>Localisation (Bâtiment / Logement / Étage)</label>
+        <div class="inputRow">
+          <input id="loc" placeholder='Ex: "Bâtiment A logement 2 rez de chaussée"' />
+          <button class="iconBtn" id="clearLoc" title="Vider">✕</button>
+        </div>
+        <div class="pill" id="locPreview">Format: —</div>
+      </div>
+
+      <div class="field">
+        <label>Pièces (dictée de masse)</label>
+        <div class="inputRow">
+          <textarea id="rooms" placeholder='Ex: "une cuisine et un séjour, deux chambres, une salle de bain et un wc"'></textarea>
+          <button class="iconBtn" id="clearRooms" title="Vider">✕</button>
         </div>
       </div>
+    </div>
 
-      <div class="input-group">
-        <label for="raw-text">🏠 Liste des pièces (Ajout progressif)</label>
-        <div class="input-with-clear">
-          <textarea id="raw-text" placeholder="Ex: deux chambres, un séjour..."></textarea>
-          <button class="btn-clear-field" onclick="clearField('raw-text')">✕</button>
-        </div>
+    <div class="toolbar">
+      <button class="btn mic" id="micBtn">🎤 Commencer la dictée (focus)</button>
+
+      <div class="btnRow">
+        <button class="btn" id="addBtn">➕ Ajouter au tableau</button>
+        <button class="btn secondary" id="resetBtn">🧹 Vider le tableau</button>
       </div>
 
-      <div class="actions">
-        <button id="btn-mic" class="primary" type="button">🎤 Commencer la dictée</button>
-        <button id="btn-add" class="secondary" type="button">➕ Ajouter au tableau</button>
+      <div class="footerRow">
+        <span class="pill">Mode: cumulatif</span>
+        <span class="hint">Astuce: touche un champ pour lui donner le focus, puis dicte. Séparateurs acceptés: pauses, virgules, “et”.</span>
       </div>
-      <p class="hint">Dictez vos pièces, puis cliquez sur "Ajouter" pour compléter le tableau.</p>
-    </section>
+    </div>
 
-    <section class="card">
-      <div class="card-head">
-        <h2>Inventaire des pièces</h2>
-        <button onclick="exportToJSON()" class="ghost">📋 Export JSON</button>
-      </div>
-      
-      <div class="table-container">
-        <table id="pieces-table">
-          <thead>
-            <tr>
-              <th>Localisation</th>
-              <th>Désignation Pièce</th>
-              <th style="width: 70px;">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="table-body">
-            </tbody>
-        </table>
-      </div>
-    </section>
-  </main>
+    <div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:48%">Localisation</th>
+            <th>Pièce</th>
+            <th style="width:120px">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
-  <script src="script.js"></script>
+<script>
+(() => {
+  // -----------------------------
+  // DOM
+  // -----------------------------
+  const $ = (id) => document.getElementById(id);
+  const loc = $("loc");
+  const rooms = $("rooms");
+  const locPreview = $("locPreview");
+  const tbody = $("tbody");
+  const micBtn = $("micBtn");
+
+  // -----------------------------
+  // Stockage local simple (offline)
+  // -----------------------------
+  const STORE_KEY = "diag_voice_rows_v1";
+  function loadRows(){
+    try { return JSON.parse(localStorage.getItem(STORE_KEY) || "[]"); }
+    catch(e){ return []; }
+  }
+  function saveRows(rows){
+    localStorage.setItem(STORE_KEY, JSON.stringify(rows));
+  }
+
+  // -----------------------------
+  // Dictionnaire minimal (extensible)
+  // (Tu peux enrichir au fil du temps, ou ajouter un UI “apprendre”)
+  // -----------------------------
+  const ROOM_ALIASES = new Map([
+    ["cuisine","Cuisine"],
+    ["sejour","Séjour"],
+    ["séjour","Séjour"],
+    ["salon","Séjour"],
+    ["piece a vivre","Séjour"],
+    ["pièce à vivre","Séjour"],
+    ["mezzanine","Mezzanine"],
+    ["chambre","Chambre"],
+    ["bureau","Bureau"],
+    ["entree","Entrée"],
+    ["entrée","Entrée"],
+    ["couloir","Couloir"],
+    ["degagement","Dégagement"],
+    ["dégagement","Dégagement"],
+    ["cellier","Cellier"],
+    ["buanderie","Buanderie"],
+    ["wc","WC"],
+    ["toilettes","WC"],
+    ["salle de bain","Salle de bain"],
+    ["salle de bains","Salle de bain"],
+    ["salle d eau","Salle d'eau"],
+    ["salle d'eau","Salle d'eau"],
+    ["garage","Garage"],
+    ["cave","Cave"],
+    ["grenier","Grenier"],
+    ["combles","Combles"],
+    ["local technique","Local technique"],
+    ["terrasse","Terrasse"],
+    ["balcon","Balcon"],
+    ["veranda","Véranda"],
+    ["véranda","Véranda"],
+  ]);
+
+  // Parasites à ignorer (terrain : “nous avons…”, “dans ce logement…”, etc.)
+  const NOISE_PATTERNS = [
+    /\bnous\s+avons\b/g,
+    /\bil\s+y\s+a\b/g,
+    /\bdans\s+ce\s+logement\b/g,
+    /\bdans\s+ce\s+bâtiment\b/g,
+    /\bdans\s+le\s+logement\b/g,
+    /\bici\b/g,
+    /\beuh+\b/g,
+    /\balors\b/g,
+    /\bdu\s+coup\b/g,
+    /\bvoilà\b/g,
+    /\bon\s+a\b/g,
+    /\bavec\b/g,
+  ];
+
+  // Petits nombres FR -> int
+  const NUM_WORDS = new Map([
+    ["un",1],["une",1],
+    ["deux",2],["trois",3],["quatre",4],["cinq",5],["six",6],
+    ["sept",7],["huit",8],["neuf",9],["dix",10]
+  ]);
+
+  // -----------------------------
+  // Localisation parsing
+  // -----------------------------
+  function normalizeText(s){
+    return (s || "")
+      .trim()
+      .replace(/\s+/g," ")
+      .replace(/[’']/g,"'"); // apostrophes uniformes
+  }
+
+  function parseLocation(raw){
+    const s0 = normalizeText(raw).toLowerCase();
+    if(!s0) return "";
+
+    let s = s0;
+
+    // Standardise : "batiment" -> "bâtiment" (optionnel)
+    s = s.replace(/\bbatiment\b/g,"bâtiment");
+
+    // Détecter bâtiment lettre/num
+    let bat = "";
+    const mBat = s.match(/\bb[âa]timent\s+([a-z0-9]+)/i);
+    if(mBat) bat = `Bâtiment ${mBat[1].toUpperCase()}`;
+
+    // Détecter logement/appart
+    let log = "";
+    const mLog = s.match(/\b(logement|appartement|appt)\s+([0-9]+)\b/i);
+    if(mLog) log = `Logement ${mLog[2]}`;
+
+    // Détecter étage
+    let et = "";
+    if(/\brez(\s|-)?de(\s|-)?chauss[ée]e\b/i.test(s) || /\brdc\b/i.test(s)) et = "RDC";
+    else {
+      const mEt = s.match(/\b(1er|2e|2ème|3e|3ème|4e|4ème)\s*[ée]tage\b/i);
+      if(mEt) et = mEt[1].toUpperCase().replace("È","E");
+      const mEtNum = s.match(/\b[ée]tage\s+([0-9]+)\b/i);
+      if(!et && mEtNum) et = `${mEtNum[1]}e`;
+    }
+
+    const parts = [bat, log, et].filter(Boolean);
+    return parts.join(" - ");
+  }
+
+  function updateLocPreview(){
+    const p = parseLocation(loc.value);
+    locPreview.textContent = p ? `Format: ${p}` : "Format: —";
+  }
+
+  // -----------------------------
+  // Pièces parsing (robuste terrain)
+  // -----------------------------
+  function cleanNoise(s){
+    let out = s;
+    for(const re of NOISE_PATTERNS) out = out.replace(re, " ");
+    return out.replace(/\s+/g," ").trim();
+  }
+
+  function splitRoomChunks(s){
+    // séparateurs flexibles : virgules, " et ", points, retours ligne, etc.
+    return s
+      .replace(/[.,;:]/g, " | ")
+      .replace(/\bet\b/g, " | ")
+      .replace(/\n+/g, " | ")
+      .replace(/\s*\|\s*/g, "|")
+      .replace(/\s+/g," ")
+      .split("|")
+      .map(x => x.trim())
+      .filter(Boolean);
+  }
+
+  function toNumber(token){
+    if(!token) return null;
+    if(/^\d+$/.test(token)) return parseInt(token,10);
+    if(NUM_WORDS.has(token)) return NUM_WORDS.get(token);
+    return null;
+  }
+
+  function normalizeKey(s){
+    return s
+      .toLowerCase()
+      .trim()
+      .replace(/[’']/g,"'")
+      .replace(/[\u0300-\u036f]/g,""); // (si on voulait enlever accents après NFD)
+  }
+
+  function canonicalizeRoom(chunk){
+    // chunk ex: "deux chambres", "un séjour", "3 wc"
+    let c = chunk.toLowerCase().trim();
+
+    // extraire quantité au début
+    const tokens = c.split(" ").filter(Boolean);
+    let qty = 1;
+    if(tokens.length){
+      const n = toNumber(tokens[0]);
+      if(n !== null && n > 0 && n <= 20){
+        qty = n;
+        tokens.shift();
+        c = tokens.join(" ").trim();
+      } else {
+        // "une" / "un" en tête
+        if(tokens[0] === "une" || tokens[0] === "un"){
+          tokens.shift();
+          c = tokens.join(" ").trim();
+        }
+      }
+    }
+
+    // supprimer mots qui ne sont pas des pièces (ex: "a", "au", "dans", etc.)
+    c = c.replace(/\b(a|au|aux|dans|de|du|des|d')\b/g," ").replace(/\s+/g," ").trim();
+
+    // essayer match dictionnaire multi-mots d'abord (salle de bain, local technique, etc.)
+    // stratégie : trouver la plus longue clé présente dans chunk
+    let best = null;
+    for(const [k, val] of ROOM_ALIASES.entries()){
+      if(c.includes(k)){
+        if(!best || k.length > best.k.length) best = {k, val};
+      }
+    }
+    if(best){
+      return { base: best.val, qty };
+    }
+
+    // fallback : si chunk = un seul mot plausible
+    // (ex: "mezzanine" si pas dans le dictionnaire => ici ça serait null, donc à ajouter)
+    // On choisit de ne PAS inventer : on ignore si inconnu (plus safe).
+    return null;
+  }
+
+  function parseRooms(raw){
+    const s0 = cleanNoise(normalizeText(raw));
+    if(!s0) return [];
+
+    const chunks = splitRoomChunks(s0);
+    const out = [];
+
+    // Compteurs pour numérotation
+    const counters = new Map();
+
+    // anti-doublon consécutif
+    let lastPiece = "";
+
+    for(const ch of chunks){
+      const item = canonicalizeRoom(ch);
+      if(!item) continue;
+
+      const { base, qty } = item;
+      for(let i=0;i<qty;i++){
+        let label = base;
+
+        // numérotation uniquement pour certaines familles (chambre, wc si tu veux, etc.)
+        const needsNumber = ["Chambre"].includes(base);
+        if(needsNumber){
+          const c = (counters.get(base) || 0) + 1;
+          counters.set(base, c);
+          label = `${base} ${c}`;
+        }
+
+        // anti répétition
+        if(label.toLowerCase() === lastPiece.toLowerCase()) continue;
+        lastPiece = label;
+
+        out.push(label);
+      }
+    }
+    return out;
+  }
+
+  // -----------------------------
+  // Rendu tableau
+  // -----------------------------
+  let rows = loadRows();
+
+  function render(){
+    tbody.innerHTML = "";
+    rows.forEach((r, idx) => {
+      const tr = document.createElement("tr");
+
+      const tdLoc = document.createElement("td");
+      tdLoc.contentEditable = "true";
+      tdLoc.textContent = r.location || "";
+      tdLoc.addEventListener("input", () => { rows[idx].location = tdLoc.textContent.trim(); saveRows(rows); });
+
+      const tdRoom = document.createElement("td");
+      tdRoom.contentEditable = "true";
+      tdRoom.textContent = r.room || "";
+      tdRoom.addEventListener("input", () => { rows[idx].room = tdRoom.textContent.trim(); saveRows(rows); });
+
+      const tdAct = document.createElement("td");
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const del = document.createElement("button");
+      del.className = "miniBtn";
+      del.textContent = "🗑️";
+      del.title = "Supprimer";
+      del.addEventListener("click", () => {
+        rows.splice(idx,1);
+        saveRows(rows);
+        render();
+      });
+
+      const mic = document.createElement("button");
+      mic.className = "miniBtn";
+      mic.textContent = "🎙️";
+      mic.title = "Descriptif (futur)";
+      mic.addEventListener("click", () => {
+        alert("🎙️ Futur: dictée descriptif spécifique pour cette pièce.");
+      });
+
+      actions.appendChild(del);
+      actions.appendChild(mic);
+      tdAct.appendChild(actions);
+
+      tr.appendChild(tdLoc);
+      tr.appendChild(tdRoom);
+      tr.appendChild(tdAct);
+      tbody.appendChild(tr);
+    });
+  }
+
+  // -----------------------------
+  // Actions UI
+  // -----------------------------
+  $("clearLoc").addEventListener("click", () => { loc.value=""; updateLocPreview(); loc.focus(); });
+  $("clearRooms").addEventListener("click", () => { rooms.value=""; rooms.focus(); });
+
+  loc.addEventListener("input", updateLocPreview);
+  updateLocPreview();
+
+  $("addBtn").addEventListener("click", () => {
+    const location = parseLocation(loc.value);
+    const pieces = parseRooms(rooms.value);
+
+    if(!location && pieces.length===0) return;
+
+    // Si pas de pièces détectées, on n’ajoute rien (safe)
+    pieces.forEach(p => rows.push({ location: location || "", room: p }));
+    saveRows(rows);
+    render();
+  });
+
+  $("resetBtn").addEventListener("click", () => {
+    if(!confirm("Vider tout le tableau ?")) return;
+    rows = [];
+    saveRows(rows);
+    render();
+  });
+
+  // -----------------------------
+  // Web Speech API (Chrome/Android)
+  // -----------------------------
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null;
+  let listening = false;
+
+  let lastFinalIndex = 0;
+  let lastFinalText = "";
+
+  function ensureRec(){
+    if(!SpeechRecognition) return null;
+    if(rec) return rec;
+
+    rec = new SpeechRecognition();
+    rec.lang = "fr-FR";
+    rec.continuous = true;
+    rec.interimResults = true;
+
+    rec.onresult = (event) => {
+      // on ne prend que les finals au-delà du lastFinalIndex
+      let finalText = "";
+      for(let i = event.resultIndex; i < event.results.length; i++){
+        const res = event.results[i];
+        if(res.isFinal) finalText += res[0].transcript;
+      }
+      finalText = finalText.trim();
+      if(!finalText) return;
+
+      // anti-doublon (bug fréquent)
+      if(finalText === lastFinalText) return;
+      lastFinalText = finalText;
+
+      const active = document.activeElement === loc ? loc : (document.activeElement === rooms ? rooms : rooms);
+      const cur = active.value || "";
+      active.value = (cur ? (cur + " ") : "") + finalText;
+      active.dispatchEvent(new Event("input"));
+    };
+
+    rec.onerror = (e) => {
+      console.warn("Speech error:", e);
+      stopMic();
+      alert("Micro indisponible ou erreur de reconnaissance.\nAstuce: autoriser le micro, utiliser Chrome.");
+    };
+
+    rec.onend = () => {
+      // En mode continu, Chrome peut s’arrêter tout seul : on relance si listening
+      if(listening){
+        try { rec.start(); } catch(e) {}
+      }
+    };
+
+    return rec;
+  }
+
+  function startMic(){
+    const r = ensureRec();
+    if(!r){
+      alert("Web Speech API non disponible sur ce navigateur.\nUtiliser Chrome (Android/desktop).");
+      return;
+    }
+    listening = true;
+    micBtn.classList.add("listening");
+    micBtn.textContent = "⏹️ Arrêter la dictée";
+    try { r.start(); } catch(e) {}
+  }
+
+  function stopMic(){
+    listening = false;
+    micBtn.classList.remove("listening");
+    micBtn.textContent = "🎤 Commencer la dictée (focus)";
+    if(rec){
+      try { rec.stop(); } catch(e) {}
+    }
+  }
+
+  micBtn.addEventListener("click", () => {
+    if(!listening) startMic();
+    else stopMic();
+  });
+
+  // initial render
+  render();
+})();
+</script>
 </body>
 </html>
