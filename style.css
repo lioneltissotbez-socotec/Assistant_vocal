@@ -1,69 +1,39 @@
-/* BASE */
 * { box-sizing: border-box; }
-body { 
-    margin: 0; padding: 0; 
-    font-family: -apple-system, system-ui, sans-serif; 
-    background: #f3f4f6; color: #1f2937;
+body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
+
+.app-header { background: #1a202c; color: white; padding: 15px; text-align: center; }
+.app-main { padding: 10px; max-width: 600px; margin: auto; }
+
+.card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+.input-group { margin-bottom: 15px; position: relative; }
+label { font-size: 0.8rem; font-weight: bold; color: #4a5568; display: block; margin-bottom: 5px; }
+
+/* Champ avec bouton X */
+.input-with-clear { position: relative; display: flex; align-items: center; }
+.input-field, textarea { 
+    width: 100%; border: 1px solid #cbd5e0; border-radius: 6px; 
+    padding: 10px 35px 10px 10px; font-size: 1rem; 
+}
+.btn-clear-field { 
+    position: absolute; right: 8px; background: #edf2f7; border: none; 
+    border-radius: 50%; width: 22px; height: 22px; cursor: pointer; color: #718096;
 }
 
-.app-header {
-    background: #111827; color: white;
-    padding: 1rem; text-align: center;
-}
-.subtitle { font-size: 0.8rem; opacity: 0.7; }
-
-.app-main { padding: 10px; max-width: 800px; margin: 0 auto; }
-
-/* CARDS */
-.card {
-    background: white; border-radius: 12px;
-    padding: 15px; margin-bottom: 15px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.input-group { margin-bottom: 15px; }
-label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 5px; }
-
-.input-field, textarea {
-    width: 100%; border: 1px solid #d1d5db;
-    border-radius: 8px; padding: 12px;
-    font-size: 1rem; transition: border 0.2s;
-}
-textarea { min-height: 100px; resize: none; }
-
-/* BOUTONS */
+/* Boutons */
 .actions { display: flex; gap: 10px; }
-button {
-    flex: 1; padding: 12px; border: none;
-    border-radius: 8px; font-weight: bold; cursor: pointer;
-}
-.primary { background: #2563eb; color: white; }
-.ghost { background: #f3f4f6; color: #4b5563; }
+button { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+.primary { background: #3182ce; color: white; }
+.secondary { background: #38a169; color: white; }
+.ghost { background: transparent; border: 1px solid #cbd5e0; color: #4a5568; }
 
-.recording {
-    background: #ef4444 !important;
-    animation: pulse 1.5s infinite;
-}
+.recording { background: #e53e3e !important; animation: blink 1s infinite; }
+@keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.7; }
-    100% { opacity: 1; }
-}
-
-/* TABLEAU */
-.table-container { width: 100%; overflow-x: auto; margin-top: 10px; }
-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-th { background: #f9fafb; text-align: left; padding: 10px; border-bottom: 2px solid #e5e7eb; }
-td { padding: 10px; border-bottom: 1px solid #e5e7eb; background: #fff; }
-
-/* Actions dans le tableau */
+/* Tableau */
+.table-container { overflow-x: auto; margin-top: 10px; }
+table { width: 100%; border-collapse: collapse; background: white; }
+th { font-size: 0.75rem; text-transform: uppercase; color: #718096; padding: 8px; border-bottom: 2px solid #edf2f7; text-align: left; }
+td { padding: 10px; border-bottom: 1px solid #edf2f7; font-size: 0.9rem; }
 .cell-actions { display: flex; gap: 5px; }
-.btn-tool {
-    padding: 5px; font-size: 1.1rem;
-    background: #f3f4f6; border-radius: 4px;
-}
-
-[contenteditable="true"]:focus {
-    background: #fffbeb; outline: 2px solid #fbbf24; border-radius: 4px;
-}
+.btn-tool { background: #f7fafc; border: 1px solid #e2e8f0; padding: 4px; border-radius: 4px; flex: none; width: 30px; }
