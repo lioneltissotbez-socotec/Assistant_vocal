@@ -2,17 +2,13 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Diagnostic Vocal - Immobilier</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        /* BASE & RESET */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, system-ui, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 16px;
@@ -28,850 +24,306 @@
             overflow: hidden;
         }
 
+        /* HEADER */
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 24px;
             text-align: center;
         }
+        .header h1 { font-size: 22px; margin-bottom: 8px; }
+        .header p { font-size: 13px; opacity: 0.9; }
 
-        .header h1 {
-            font-size: 24px;
-            margin-bottom: 8px;
-        }
-
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .input-section {
-            padding: 20px;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        .input-group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #555;
-            font-size: 14px;
-        }
-
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            gap: 8px;
-        }
-
-        .input-wrapper textarea {
-            flex: 1;
-            resize: vertical;
-            min-height: 120px;
-            padding: 14px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 16px;
-            font-family: inherit;
-            transition: all 0.3s;
-        }
-
-        .input-wrapper textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .btn-clear {
-            width: 48px;
-            height: 48px;
-            border: none;
-            background: #ff4757;
-            color: white;
-            border-radius: 12px;
-            font-size: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            flex-shrink: 0;
-        }
-
-        .btn-clear:active {
-            transform: scale(0.95);
-        }
-
-        .voice-controls {
-            display: flex;
-            gap: 12px;
-            margin: 20px 0;
-        }
-
-        .btn-mic {
-            flex: 1;
-            padding: 16px;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-start {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-start:active {
-            transform: scale(0.98);
-        }
-
-        .btn-stop {
-            background: #ff4757;
-            color: white;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .btn-add {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            background: #2ecc71;
-            color: white;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 12px;
-        }
-
-        .btn-add:active {
-            transform: scale(0.98);
-        }
-
-        .preview-section {
-            padding: 16px 20px;
-            background: #f8f9fa;
-            border-top: 2px solid #e0e0e0;
-        }
-
-        .preview-section h3 {
-            font-size: 16px;
-            color: #555;
-            margin-bottom: 12px;
-        }
-
-        .preview-box {
-            background: white;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 8px;
-            font-size: 14px;
-            border: 2px solid #e0e0e0;
-        }
-
-        .preview-box.location {
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .preview-box.pieces {
-            color: #2ecc71;
-        }
-
-        .preview-box .piece-item {
-            display: inline-block;
-            background: #e8f5e9;
-            padding: 4px 8px;
-            border-radius: 4px;
-            margin: 2px;
-            font-size: 13px;
-        }
-
-        .table-section {
-            padding: 20px;
-            background: #f8f9fa;
-        }
-
-        .table-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .table-header h2 {
-            font-size: 20px;
-            color: #333;
-        }
-
-        .btn-export {
-            padding: 10px 20px;
-            border: none;
-            background: #667eea;
-            color: white;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .data-table {
-            width: 100%;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .data-table table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .data-table th {
-            background: #667eea;
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .data-table td {
-            padding: 12px;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 14px;
-        }
-
-        .data-table td[contenteditable] {
-            cursor: text;
-            transition: background 0.2s;
-        }
-
-        .data-table td[contenteditable]:hover {
-            background: #f8f9fa;
-        }
-
-        .data-table td[contenteditable]:focus {
-            outline: 2px solid #667eea;
-            background: #fff;
-        }
-
-        .row-actions {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-        }
-
-        .btn-action {
-            width: 36px;
-            height: 36px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        .btn-delete {
-            background: #ff4757;
-            color: white;
-        }
-
-        .btn-describe {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-action:active {
-            transform: scale(0.95);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #999;
-        }
-
+        /* STATUS BAR */
         .status-bar {
-            padding: 12px 20px;
-            background: #fff3cd;
-            color: #856404;
-            font-size: 14px;
+            padding: 10px;
+            font-size: 13px;
             text-align: center;
             display: none;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
         }
+        .status-bar.active { display: block; }
+        .status-bar.success { background: #d4edda; color: #155724; }
+        .status-bar.error { background: #f8d7da; color: #721c24; }
 
-        .status-bar.active {
+        /* INPUT SECTION */
+        .input-section { padding: 20px; }
+        .input-group label {
             display: block;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-size: 14px;
+        }
+        .input-wrapper { display: flex; gap: 8px; }
+        textarea {
+            flex: 1;
+            min-height: 100px;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            resize: none;
+        }
+        textarea:focus { outline: none; border-color: #667eea; }
+
+        .btn-clear {
+            width: 45px; background: #fee2e2; border: none;
+            color: #ef4444; border-radius: 12px; cursor: pointer;
         }
 
-        .status-bar.success {
-            background: #d4edda;
-            color: #155724;
+        /* CONTROLS */
+        .voice-controls { display: flex; gap: 10px; margin: 15px 0; }
+        .btn {
+            border: none; border-radius: 12px; padding: 14px;
+            font-weight: 700; cursor: pointer; transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-mic { flex: 1; background: #667eea; color: white; font-size: 16px; }
+        .btn-mic.recording { background: #ef4444; animation: pulse 1.5s infinite; }
+        .btn-add { width: 100%; background: #10b981; color: white; margin-bottom: 15px; }
+        
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+
+        /* PREVIEW */
+        .preview-section { padding: 15px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
+        .preview-box { font-size: 13px; margin-bottom: 5px; }
+        .piece-item {
+            display: inline-block; background: #dcfce7; color: #166534;
+            padding: 2px 8px; border-radius: 4px; margin: 2px;
         }
 
-        .status-bar.error {
-            background: #f8d7da;
-            color: #721c24;
-        }
+        /* TABLE */
+        .table-section { padding: 20px; background: white; }
+        .table-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .data-table { width: 100%; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f1f5f9; padding: 10px; text-align: left; font-size: 12px; }
+        td { padding: 10px; border-top: 1px solid #e2e8f0; font-size: 14px; }
+        
+        .btn-row { padding: 6px; border-radius: 6px; border: none; cursor: pointer; color: white; }
+        .del { background: #ef4444; }
+        .edit { background: #667eea; }
 
         @media (max-width: 480px) {
-            body {
-                padding: 0;
-            }
-
-            .container {
-                border-radius: 0;
-                min-height: 100vh;
-            }
-
-            .header h1 {
-                font-size: 20px;
-            }
-
-            .data-table {
-                font-size: 12px;
-            }
-
-            .data-table th,
-            .data-table td {
-                padding: 8px 6px;
-            }
+            body { padding: 0; }
+            .container { border-radius: 0; min-height: 100vh; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🏠 Diagnostic Immobilier</h1>
-            <p>Saisie vocale intelligente - Parsing automatique</p>
-        </div>
 
-        <div class="status-bar" id="statusBar"></div>
-
-        <div class="input-section">
-            <div class="input-group">
-                <label>🎤 Dictée complète (Localisation + Pièces)</label>
-                <div class="input-wrapper">
-                    <textarea 
-                        id="mainInput" 
-                        placeholder="Ex: Bâtiment A logement 2 rez de chaussée avec deux chambres, un séjour, une cuisine et une salle de bain"
-                    ></textarea>
-                    <button class="btn-clear" onclick="clearField()">✕</button>
-                </div>
-            </div>
-
-            <div class="voice-controls">
-                <button class="btn-mic btn-start" id="micBtn" onclick="toggleMic()">
-                    🎤 Commencer la dictée
-                </button>
-            </div>
-
-            <button class="btn-add" onclick="parseAndAdd()">
-                ✨ Parser et ajouter
-            </button>
-        </div>
-
-        <div class="preview-section">
-            <h3>📋 Aperçu du parsing</h3>
-            <div class="preview-box location" id="previewLocation">
-                Localisation : <span style="color: #999;">en attente...</span>
-            </div>
-            <div class="preview-box pieces" id="previewPieces">
-                Pièces : <span style="color: #999;">en attente...</span>
-            </div>
-        </div>
-
-        <div class="table-section">
-            <div class="table-header">
-                <h2>📊 Données collectées</h2>
-                <button class="btn-export" onclick="exportData()">💾 Exporter</button>
-            </div>
-
-            <div class="data-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 40%">Localisation</th>
-                            <th style="width: 40%">Pièce</th>
-                            <th style="width: 20%">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dataTableBody">
-                        <tr class="empty-state">
-                            <td colspan="3">Aucune donnée pour le moment</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<div class="container">
+    <div class="header">
+        <h1>🏠 Diagnostic Immobilier</h1>
+        <p>Parsing vocal de localisation et pièces</p>
     </div>
 
-    <script>
-        let recognition = null;
-        let isListening = false;
-        let dataStore = [];
+    <div id="statusBar" class="status-bar"></div>
 
-        // Dictionnaire des pièces reconnues
-        const PIECES_DICT = {
-            // Habitat - logements
-            'entree': 'Entrée',
-            'hall': 'Hall d\'entrée',
-            'hall d\'entree': 'Hall d\'entrée',
-            'vestibule': 'Vestibule',
-            'degagement': 'Dégagement',
-            'couloir': 'Couloir',
-            'circulation': 'Circulation',
-            'palier': 'Palier intérieur',
-            'palier interieur': 'Palier intérieur',
-            'sejour': 'Séjour',
-            'salon': 'Salon',
-            'salle de sejour': 'Salle de séjour',
-            'sejour salon': 'Séjour salon',
-            'piece de vie': 'Pièce de vie',
-            'salle a vivre': 'Salle à vivre',
-            'living': 'Living',
-            'salle a manger': 'Salle à manger',
-            'coin repas': 'Coin repas',
-            'cuisine': 'Cuisine',
-            'cuisine ouverte': 'Cuisine ouverte',
-            'cuisine americaine': 'Cuisine américaine',
-            'coin cuisine': 'Coin cuisine',
-            'kitchenette': 'Kitchenette',
-            'arriere cuisine': 'Arrière-cuisine',
-            'chambre': 'Chambre',
-            'chambre parentale': 'Chambre parentale',
-            'suite parentale': 'Suite parentale',
-            'coin nuit': 'Coin nuit',
-            'bureau': 'Bureau',
-            'piece bureau': 'Pièce bureau',
-            'salle de bain': 'Salle de bain',
-            'salle de bains': 'Salle de bain',
-            'salle d\'eau': 'Salle d\'eau',
-            'salle de douche': 'Salle de douche',
-            'sdb': 'Salle de bain',
-            'sde': 'Salle d\'eau',
-            'wc': 'WC',
-            'toilettes': 'Toilettes',
-            'sanitaires': 'Sanitaires',
-            'cabinet d\'aisance': 'Cabinet d\'aisance',
-            'dressing': 'Dressing',
-            'placard': 'Placard',
-            'placard mural': 'Placard mural',
-            'penderie': 'Penderie',
-            'buanderie': 'Buanderie',
-            'lingerie': 'Lingerie',
-            'cellier': 'Cellier',
-            'reserve': 'Réserve',
-            'debarras': 'Débarras',
-            'grenier': 'Grenier',
-            'combles': 'Combles',
-            'combles amenages': 'Combles aménagés',
-            'combles perdus': 'Combles perdus',
-            'cave': 'Cave',
-            'cave voutee': 'Cave voûtée',
-            'cave privative': 'Cave privative',
-            'garage': 'Garage',
-            'box': 'Box',
-            'parking': 'Parking',
-            'stationnement': 'Stationnement',
-            'balcon': 'Balcon',
-            'terrasse': 'Terrasse',
-            'loggia': 'Loggia',
-            'veranda': 'Véranda',
-            // Tertiaire
-            'open space': 'Open space',
-            'plateau': 'Plateau de bureaux',
-            'salle de reunion': 'Salle de réunion',
-            'salle de conference': 'Salle de conférence',
-            'salle de formation': 'Salle de formation',
-            'accueil': 'Accueil',
-            'reception': 'Réception',
-            'local informatique': 'Local informatique',
-            'salle serveur': 'Salle serveur',
-            'reprographie': 'Reprographie',
-            'cafeteria': 'Cafétéria',
-            'salle de pause': 'Salle de pause',
-            'archives': 'Archives',
-            'vestiaires': 'Vestiaires',
-            'vestiaire': 'Vestiaire',
-            // Locaux techniques
-            'local technique': 'Local technique',
-            'local electrique': 'Local électrique',
-            'chaufferie': 'Chaufferie',
-            'local chaudiere': 'Local chaudière',
-            'local pac': 'Local PAC',
-            'local vmc': 'Local VMC',
-            'local menage': 'Local ménage',
-            'local entretien': 'Local entretien',
-            'local dechets': 'Local déchets',
-            'local poubelles': 'Local poubelles',
-            'stock': 'Stock',
-            'stockage': 'Stockage',
-            // ERP
-            'salle polyvalente': 'Salle polyvalente',
-            'salle des fetes': 'Salle des fêtes',
-            'salle de sport': 'Salle de sport',
-            'gymnase': 'Gymnase',
-            'douches': 'Douches',
-            'cuisine professionnelle': 'Cuisine professionnelle',
-            'plonge': 'Plonge',
-            'office': 'Office',
-            'chambre froide': 'Chambre froide',
-            'salle de classe': 'Salle de classe',
-            'amphitheatre': 'Amphithéâtre',
-            'laboratoire': 'Laboratoire'
+    <div class="input-section">
+        <div class="input-group">
+            <label>🎙️ Dictée Libre</label>
+            <div class="input-wrapper">
+                <textarea id="mainInput" placeholder="Ex: Bâtiment A logement 2, deux chambres et un séjour..."></textarea>
+                <button class="btn-clear" onclick="clearField()">✕</button>
+            </div>
+        </div>
+
+        <div class="voice-controls">
+            <button id="micBtn" class="btn btn-mic" onclick="toggleMic()">🎤 Commencer la dictée</button>
+        </div>
+
+        <button class="btn btn-add" onclick="parseAndAdd()">✨ Ajouter au tableau</button>
+    </div>
+
+    <div class="preview-section">
+        <div class="preview-box"><strong>📍 Localisation :</strong> <span id="preLoc" style="color:#999">En attente...</span></div>
+        <div class="preview-box"><strong>📋 Pièces :</strong> <span id="prePie" style="color:#999">En attente...</span></div>
+    </div>
+
+    <div class="table-section">
+        <div class="table-header">
+            <h3>📊 Inventaire</h3>
+            <button onclick="exportData()" style="color:#667eea; background:none; border:none; font-weight:bold; cursor:pointer;">💾 Exporter JSON</button>
+        </div>
+        <div class="data-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Localisation</th>
+                        <th>Pièce</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTableBody">
+                    <tr><td colspan="3" style="text-align:center; color:#999; padding:20px;">Aucune donnée</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* CONFIGURATION & DICTIONNAIRE */
+    const PIECES_DICT = {
+        'sejour': 'Séjour', 'salon': 'Salon', 'cuisine': 'Cuisine', 'chambre': 'Chambre',
+        'salle de bain': 'Salle de Bain', 'wc': 'WC', 'toilettes': 'WC', 'entree': 'Entrée',
+        'couloir': 'Couloir', 'cellier': 'Cellier', 'garage': 'Garage', 'balcon': 'Balcon'
+    };
+
+    const STOP_WORDS = ['le', 'la', 'les', 'un', 'une', 'des', 'avec', 'et', 'dans', 'nous', 'avons'];
+
+    let recognition = null;
+    let isListening = false;
+    let dataStore = [];
+
+    /* RECONNAISSANCE VOCALE */
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.lang = 'fr-FR';
+
+        recognition.onresult = (e) => {
+            const transcript = e.results[e.results.length - 1][0].transcript;
+            const input = document.getElementById('mainInput');
+            input.value += (input.value ? ' ' : '') + transcript;
+            updatePreview();
         };
 
-        // Mots de localisation
-        const LOCATION_KEYWORDS = new Set([
-            'batiment', 'immeuble', 'residence', 'site', 'aile',
-            'logement', 'appartement', 'lot', 'studio', 'duplex',
-            'etage', 'niveau', 'rez de chaussee', 'rdc', 'sous-sol',
-            'entree', 'escalier', 'ascenseur'
-        ]);
+        recognition.onend = () => { if(isListening) recognition.start(); };
+    }
 
-        // Mots parasites à ignorer
-        const STOP_WORDS = new Set([
-            'alors', 'donc', 'voila', 'bon', 'ok', 'euh', 'hein', 'hum', 'ben', 'bah',
-            'tu', 'vois', 'vous', 'voyez', 'ici', 'la', 'juste', 'plutot', 'environ',
-            'a', 'peu', 'pres', 'par', 'on', 'nous', 'avons', 'il', 'y', 'c\'est',
-            'ce', 'sont', 'ca', 'correspond', 'est', 'dans', 'passe', 'je', 'dirais',
-            'pense', 'peut', 'etre', 'peut-etre', 'normalement', 'en', 'fait',
-            'globalement', 'plusieurs', 'quelques', 'avec', 'sans', 'pour', 'ou',
-            'le', 'la', 'les', 'un', 'une', 'des', 'de', 'du'
-        ]);
-
-        function normalizeText(text) {
-            return text.toLowerCase()
-                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                .replace(/['']/g, '\'')
-                .replace(/\s+/g, ' ')
-                .trim();
+    function toggleMic() {
+        if (!recognition) return showStatus("Audio non supporté", "error");
+        const btn = document.getElementById('micBtn');
+        if (!isListening) {
+            isListening = true;
+            recognition.start();
+            btn.classList.add('recording');
+            btn.innerHTML = "⏹️ Arrêter l'écoute";
+            showStatus("Écoute en cours...", "success");
+        } else {
+            isListening = false;
+            recognition.stop();
+            btn.classList.remove('recording');
+            btn.innerHTML = "🎤 Commencer la dictée";
         }
+    }
 
-        // Initialisation de la reconnaissance vocale
-        function initSpeechRecognition() {
-            if (!('webkitSpeechRecognition' in window)) {
-                showStatus('⚠️ La reconnaissance vocale n\'est pas supportée par votre navigateur', 'error');
-                return false;
-            }
+    /* LOGIQUE DE PARSING */
+    function normalize(t) {
+        return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    }
 
-            recognition = new webkitSpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = false;
-            recognition.lang = 'fr-FR';
+    function extractLocation(text) {
+        const t = normalize(text);
+        let loc = [];
+        const bat = t.match(/batiment\s+(\w+)/);
+        const log = t.match(/logement\s+(\d+)/);
+        const rdc = t.includes('rez de chaussee') || t.includes('rdc');
+        
+        if (bat) loc.push("Bât. " + bat[1].toUpperCase());
+        if (log) loc.push("Log. " + log[1]);
+        if (rdc) loc.push("RDC");
+        
+        return loc.length ? loc.join(' - ') : null;
+    }
 
-            recognition.onresult = (e) => {
-                const lastResult = e.results[e.results.length - 1];
-                if (lastResult.isFinal) {
-                    const transcript = lastResult[0].transcript.trim();
-                    insertText(transcript);
-                }
-            };
+    function extractPieces(text) {
+        const t = normalize(text);
+        const found = [];
+        const numMap = {'un':1, 'une':1, 'deux':2, 'trois':3, 'quatre':4, 'cinq':5};
+        
+        const segments = t.split(/,| et /);
+        segments.forEach(s => {
+            for (let [key, val] of Object.entries(PIECES_DICT)) {
+                if (s.includes(key)) {
+                    let qty = 1;
+                    const words = s.trim().split(' ');
+                    if (numMap[words[0]]) qty = numMap[words[0]];
+                    else if (!isNaN(parseInt(words[0]))) qty = parseInt(words[0]);
 
-            recognition.onerror = (e) => {
-                console.error('Erreur reconnaissance vocale:', e.error);
-                if (e.error === 'no-speech') {
-                    showStatus('Aucune parole détectée', 'error');
-                } else {
-                    showStatus('Erreur: ' + e.error, 'error');
-                }
-            };
-
-            recognition.onend = () => {
-                if (isListening) {
-                    recognition.start();
-                }
-            };
-
-            return true;
-        }
-
-        function toggleMic() {
-            if (!recognition && !initSpeechRecognition()) return;
-
-            const btn = document.getElementById('micBtn');
-            
-            if (isListening) {
-                isListening = false;
-                recognition.stop();
-                btn.className = 'btn-mic btn-start';
-                btn.innerHTML = '🎤 Commencer la dictée';
-                showStatus('Micro arrêté', 'success');
-            } else {
-                isListening = true;
-                recognition.start();
-                btn.className = 'btn-mic btn-stop';
-                btn.innerHTML = '⏹️ Arrêter la dictée';
-                showStatus('🎙️ Écoute en cours... Parlez maintenant', 'success');
-            }
-        }
-
-        function insertText(text) {
-            const input = document.getElementById('mainInput');
-            const start = input.selectionStart;
-            const end = input.selectionEnd;
-            const currentValue = input.value;
-            
-            const newValue = currentValue.substring(0, start) + 
-                            (currentValue.substring(0, start).length > 0 ? ' ' : '') +
-                            text + 
-                            currentValue.substring(end);
-            
-            input.value = newValue;
-            input.focus();
-            
-            // Mise à jour preview en temps réel
-            updatePreview();
-        }
-
-        function clearField() {
-            document.getElementById('mainInput').value = '';
-            updatePreview();
-        }
-
-        function extractLocation(text) {
-            const normalized = normalizeText(text);
-            const words = normalized.split(' ');
-            
-            let locationParts = [];
-            let i = 0;
-            
-            while (i < words.length) {
-                const word = words[i];
-                
-                // Détection bâtiment
-                if (word === 'batiment' && i + 1 < words.length) {
-                    locationParts.push('Bâtiment ' + words[i + 1].toUpperCase());
-                    i += 2;
-                    continue;
-                }
-                
-                // Détection logement/appartement
-                if ((word === 'logement' || word === 'appartement') && i + 1 < words.length) {
-                    locationParts.push('Logement ' + words[i + 1]);
-                    i += 2;
-                    continue;
-                }
-                
-                // Détection étage
-                if (word === 'rez' || word === 'rdc') {
-                    locationParts.push('RDC');
-                    i += 3; // skip "de chaussée"
-                    continue;
-                }
-                
-                if (word === 'etage') {
-                    if (i > 0) {
-                        const prev = words[i - 1];
-                        if (prev === 'premier' || prev === '1er') {
-                            locationParts.push('1er étage');
-                        } else if (prev === 'deuxieme' || prev === '2eme' || prev === '2e') {
-                            locationParts.push('2ème étage');
-                        } else if (prev === 'troisieme' || prev === '3eme' || prev === '3e') {
-                            locationParts.push('3ème étage');
-                        }
+                    for (let i = 0; i < qty; i++) {
+                        found.push(qty > 1 ? `${val} ${i+1}` : val);
                     }
-                    i++;
-                    continue;
                 }
-                
-                i++;
             }
-            
-            return locationParts.length > 0 ? locationParts.join(' - ') : null;
+        });
+        return found;
+    }
+
+    /* UI ACTIONS */
+    function updatePreview() {
+        const val = document.getElementById('mainInput').value;
+        const loc = extractLocation(val);
+        const pie = extractPieces(val);
+
+        document.getElementById('preLoc').innerHTML = loc ? `<strong>${loc}</strong>` : "Non détectée";
+        document.getElementById('prePie').innerHTML = pie.length ? 
+            pie.map(p => `<span class="piece-item">${p}</span>`).join('') : "Aucune pièce";
+    }
+
+    document.getElementById('mainInput').addEventListener('input', updatePreview);
+
+    function parseAndAdd() {
+        const val = document.getElementById('mainInput').value;
+        const loc = extractLocation(val) || "Indéfini";
+        const pieces = extractPieces(val);
+
+        if (!pieces.length) return showStatus("Aucune pièce détectée", "error");
+
+        pieces.forEach(p => dataStore.push({ localisation: loc, piece: p }));
+        renderTable();
+        clearField();
+        showStatus(`${pieces.length} pièce(s) ajoutée(s)`, "success");
+    }
+
+    function renderTable() {
+        const body = document.getElementById('dataTableBody');
+        if (!dataStore.length) {
+            body.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#999; padding:20px;">Aucune donnée</td></tr>';
+            return;
         }
+        body.innerHTML = dataStore.map((d, i) => `
+            <tr>
+                <td contenteditable="true" onblur="updateEntry(${i},'localisation',this.innerText)">${d.localisation}</td>
+                <td contenteditable="true" onblur="updateEntry(${i},'piece',this.innerText)">${d.piece}</td>
+                <td><button class="btn-row del" onclick="deleteRow(${i})">🗑️</button></td>
+            </tr>
+        `).join('');
+    }
 
-        function extractPieces(text) {
-            const normalized = normalizeText(text);
-            
-            const numberMap = {
-                'un': 1, 'une': 1, 'deux': 2, 'trois': 3, 'quatre': 4, 
-                'cinq': 5, 'six': 6, 'sept': 7, 'huit': 8, 'neuf': 9, 'dix': 10
-            };
+    function updateEntry(i, key, val) { dataStore[i][key] = val; }
 
-            // Séparation par virgules et "et"
-            const segments = normalized
-                .replace(/\s*,\s*/g, '|')
-                .replace(/\s+et\s+/g, '|')
-                .split('|')
-                .map(s => s.trim())
-                .filter(s => s);
+    function deleteRow(i) {
+        dataStore.splice(i, 1);
+        renderTable();
+    }
 
-            const pieces = [];
+    function clearField() {
+        document.getElementById('mainInput').value = "";
+        updatePreview();
+    }
 
-            segments.forEach(segment => {
-                // Nettoyage des mots parasites
-                let words = segment.split(/\s+/).filter(w => !STOP_WORDS.has(w));
-                
-                if (words.length === 0) return;
+    function showStatus(msg, type) {
+        const s = document.getElementById('statusBar');
+        s.innerText = msg;
+        s.className = `status-bar active ${type}`;
+        setTimeout(() => s.className = "status-bar", 3000);
+    }
 
-                let quantity = 1;
+    function exportData() {
+        if (!dataStore.length) return showStatus("Rien à exporter", "error");
+        const blob = new Blob([JSON.stringify(dataStore, null, 2)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "export_diagnostic.json";
+        a.click();
+    }
+</script>
 
-                // Détection quantité
-                const firstWord = words[0];
-                if (numberMap[firstWord]) {
-                    quantity = numberMap[firstWord];
-                    words = words.slice(1);
-                } else if (!isNaN(parseInt(firstWord))) {
-                    quantity = parseInt(firstWord);
-                    words = words.slice(1);
-                }
-
-                if (words.length === 0) return;
-
-                // Recherche de correspondance dans le dictionnaire
-                let matchedPiece = null;
-                
-                for (let len = words.length; len > 0; len--) {
-                    const testKey = words.slice(0, len).join(' ');
-                    
-                    if (PIECES_DICT[testKey]) {
-                        matchedPiece = PIECES_DICT[testKey];
-                        break;
-                    }
-                    
-                    for (const [key, value] of Object.entries(PIECES_DICT)) {
-                        if (key.startsWith(testKey) || testKey.startsWith(key)) {
-                            matchedPiece = value;
-                            break;
-                        }
-                    }
-                    
-                    if (matchedPiece) break;
-                }
-
-                // Si pas de correspondance, on ignore (c'est probablement du contexte de localisation)
-                if (!matchedPiece) return;
-
-                // Ajout avec quantité
-                if (quantity > 1) {
-                    for (let i = 1; i <= quantity; i++) {
-                        pieces.push(`${matchedPiece} ${i}`);
-                    }
-                } else {
-                    pieces.push(matchedPiece);
-                }
-            });
-
-            return pieces;
-        }
-
-        function updatePreview() {
-            const text = document.getElementById('mainInput').value;
-            
-            if (!text.trim()) {
-                document.getElementById('previewLocation').innerHTML = 
-                    'Localisation : <span style="color: #999;">en attente...</span>';
-                document.getElementById('previewPieces').innerHTML = 
-                    'Pièces : <span style="color: #999;">en attente...</span>';
-                return;
-            }
-
-            const location = extractLocation(text);
-            const pieces = extractPieces(text);
-
-            document.getElementById('previewLocation').innerHTML = 
-                `Localisation : <strong>${location || '<span style="color: #ff4757;">Non détectée</span>'}</strong>`;
-            
-            if (pieces.length > 0) {
-                const piecesHtml = pieces.map(p => `<span class="piece-item">${p}</span>`).join(' ');
-                document.getElementById('previewPieces').innerHTML = `Pièces (${pieces.length}) : ${piecesHtml}`;
-            } else {
-                document.getElementById('previewPieces').innerHTML = 
-                    'Pièces : <span style="color: #ff4757;">Aucune détectée</span>';
-            }
-        }
-
-        // Mise à jour preview en temps réel
-        document.getElementById('mainInput').addEventListener('input', updatePreview);
-
-        function parseAndAdd() {
-            const text = document.getElementById('mainInput').value;
-
-            if (!text.trim()) {
-                showStatus('⚠️ Veuillez saisir du texte', 'error');
-                return;
-            }
-
-            const location = extractLocation(text);
-            const pieces = extractPieces(text);
-
-            if (!location) {
-                showStatus('⚠️ Localisation non détectée', 'error');
-                return;
-            }
-
-            if (pieces.length === 0) {
-                showStatus('⚠️ Aucune pièce détectée', 'error');
-                return;
-            }
-
-            pieces.forEach(piece => {
-                dataStore.push({ localisation: location, piece });
-            });
-
-            renderTable();
-            clearField();
-            showStatus(`✅ ${pieces.length} pièce(s) ajoutée(s) avec succès`, 'success');
-        }
-
-        function renderTable() {
-            const tbody = document.getElementById('dataTableBody');
-            
-            if (dataStore.length === 0) {
-                tbody.innerHTML = '<tr class="empty-state"><td colspan="3">Aucune donnée pour le moment</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = dataStore.map((row, idx) => `
-                <tr>
-                    <td contenteditable="true" onblur="updateData(${idx}, 'localisation', this.textContent)">${row.localisation}</td>
-                    <td contenteditable="true" onblur="updateData(${idx}, 'piece', this.textContent)">${row.piece}</td>
-                    <td>
-                        <div class="row-actions">
-                            <button class="btn-action btn-delete" onclick="deleteRow(${idx})">🗑️</button>
-                            <button class="btn-action btn-describe" onclick="describeRow(${idx})">🎙️</button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function updateData(idx, field, value) {
-            if (dataStore[idx]) {
-                dataStore[idx][field] = value.trim();
-            }
-        }
-
-        function deleteRow(idx) {
-            if (confirm('Supprimer cette ligne ?')) {
-                dataStore.splice(idx, 1);
-                renderTable();
-                showStatus('✅ Ligne supprimée', 'success');
-            }
-        }
-
-        function describeRow(idx) {
-            showStatus('🎙️ Fonction description (à venir)', 'success');
-        }
-
-        function exportData() {
-            if (dataStore.length === 0) {
-                showStatus('⚠️ Auc
+</body>
+</html>
