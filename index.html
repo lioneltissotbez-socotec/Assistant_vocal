@@ -3,122 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Diagnostic Immo - Saisie Clavier</title>
+    <title>Diagnostic Expert - Saisie Clavier v131618</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, system-ui, sans-serif;
-            background: #f0f2f5;
-            padding: 15px;
-            color: #1a1a1a;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            overflow: hidden;
-        }
-
-        .header {
-            background: #2563eb;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .input-section { padding: 20px; }
-        
-        label {
-            display: block;
-            font-weight: 700;
-            margin-bottom: 10px;
-            font-size: 14px;
-            color: #4b5563;
-        }
-
-        /* Optimisation pour mobile : focus clair et grande zone de saisie */
-        textarea {
-            width: 100%;
-            min-height: 120px;
-            padding: 15px;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 16px; /* Évite le zoom auto sur iOS */
-            font-family: inherit;
-            margin-bottom: 15px;
-            transition: border-color 0.2s;
-        }
-        textarea:focus {
-            outline: none;
-            border-color: #2563eb;
-            background: #f8faff;
-        }
-
-        .btn-add {
-            width: 100%;
-            background: #059669;
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .preview-area {
-            background: #f9fafb;
-            padding: 15px;
-            border-top: 1px solid #eee;
-            font-size: 13px;
-        }
-
-        .chip {
-            display: inline-block;
-            background: #dcfce7;
-            color: #166534;
-            padding: 3px 8px;
-            border-radius: 6px;
-            margin: 2px;
-            font-weight: 500;
-        }
-
-        .table-section { padding: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; font-size: 12px; color: #6b7280; padding: 8px; border-bottom: 2px solid #eee; }
-        td { padding: 12px 8px; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
-        
-        .btn-del { background: #fee2e2; color: #ef4444; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
+        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 15px; margin: 0; }
+        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: #0f172a; color: white; padding: 20px; text-align: center; }
+        .input-area { padding: 20px; border-bottom: 2px solid #f1f5f9; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
+        textarea { width: 100%; min-height: 120px; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px; transition: border-color 0.2s; }
+        textarea:focus { outline: none; border-color: var(--primary); }
+        .btns { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 10px; }
+        .btn-add { background: #059669; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; }
+        .btn-clear { background: #e2e8f0; color: #475569; border: none; padding: 15px; border-radius: 8px; cursor: pointer; }
+        .table-container { padding: 20px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8fafc; text-align: left; padding: 12px; font-size: 12px; text-transform: uppercase; color: #64748b; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+        .contexte-badge { color: var(--primary); font-weight: 600; }
+        .delete-btn { color: #ef4444; background: none; border: none; cursor: pointer; font-size: 18px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h2>Logiciel Diagnostic</h2>
-        <p>Utilisez le micro du clavier 🎙️</p>
+        <h2 style="margin:0">Saisie Diagnostiqueur</h2>
+        <p style="margin:5px 0 0; opacity:0.8; font-size:13px">Utilisez le micro 🎙️ de votre clavier de téléphone</p>
     </div>
 
-    <div class="input-section">
-        <label for="mainInput">Cliquez ci-dessous et utilisez la dictée du clavier :</label>
-        <textarea id="mainInput" placeholder="Ex: Bâtiment A, 2 chambres, un salon, une cuisine..."></textarea>
-        <button class="btn-add" onclick="processEntry()">✅ Valider et ajouter</button>
+    <div class="input-area">
+        <label>Dictez la composition :</label>
+        <textarea id="mainInput" placeholder="Ex: Niveau 1 logement 12 nous avons un salon, une cuisine, 3 chambres..."></textarea>
+        <div class="btns">
+            <button class="btn-add" onclick="processEntry()">AJOUTER À L'INVENTAIRE</button>
+            <button class="btn-clear" onclick="document.getElementById('mainInput').value=''">✕</button>
+        </div>
     </div>
 
-    <div id="preview" class="preview-area">
-        <em>Aperçu en temps réel...</em>
-    </div>
-
-    <div class="table-section">
-        <h3>Inventaire des pièces</h3>
-        <table id="dataTable">
+    <div class="table-container">
+        <table>
             <thead>
                 <tr>
-                    <th>Localisation</th>
-                    <th>Désignation</th>
+                    <th>Structure / Contexte</th>
+                    <th>Local / Pièce</th>
                     <th></th>
                 </tr>
             </thead>
@@ -128,103 +57,97 @@
 </div>
 
 <script>
-    const PIECES_LIST = {
-        'chambre': 'Chambre',
-        'salon': 'Salon',
-        'sejour': 'Séjour',
-        'cuisine': 'Cuisine',
-        'salle de bain': 'Salle de Bain',
-        'sdb': 'Salle de Bain',
-        'wc': 'WC',
-        'toilettes': 'WC',
-        'entree': 'Entrée',
-        'couloir': 'Couloir',
-        'palier': 'Palier',
-        'garage': 'Garage',
-        'balcon': 'Balcon',
-        'terrasse': 'Terrasse'
-    };
+// --- DICTIONNAIRES ---
+const DICT_PIECES = [
+    "entree", "hall d'entree", "vestibule", "degagement", "couloir", "circulation", "palier interieur",
+    "sejour", "salon", "salle de sejour", "sejour salon", "piece de vie", "salle a vivre", "living", "salle a manger", "coin repas",
+    "cuisine", "cuisine ouverte", "cuisine americaine", "coin cuisine", "kitchenette", "arriere-cuisine",
+    "chambre", "chambre parentale", "suite parentale", "coin nuit", "bureau", "piece bureau",
+    "salle de bain", "salle de bains", "salle d'eau", "salle de douche", "wc", "toilettes", "sanitaires", "cabinet d'aisance",
+    "dressing", "placard", "placard mural", "penderie", "buanderie", "lingerie", "cellier", "reserve", "debarras",
+    "grenier", "combles", "cave", "garage", "box", "parking", "balcon", "terrasse", "loggia", "veranda",
+    "open space", "salle de reunion", "accueil", "reception", "local informatique", "salle serveur", "reprographie", "cafeteria", "salle de pause", "archives",
+    "local technique", "local electrique", "chaufferie", "local vmc", "local menage", "local dechets", "stockage",
+    "salle polyvalente", "salle de sport", "cuisine professionnelle", "salle de classe", "amphitheatre", "laboratoire"
+];
 
-    const NUMBERS = { 'un': 1, 'une': 1, 'deux': 2, 'trois': 3, 'quatre': 4, 'cinq': 5, 'six': 6 };
+const DICT_STRUCTURE = ["batiment", "immeuble", "residence", "logement", "appartement", "lot", "niveau", "etage", "rdc", "sous-sol"];
 
-    function normalize(str) {
-        return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const PARASITES = ["alors", "donc", "voila", "bon", "ok", "euh", "hein", "hum", "ben", "bah", "tu vois", "on a", "nous avons", "il y a", "c'est", "ce sont", "on est dans", "ici", "juste", "plutot"];
+
+const NUM_MAP = {"un":1, "une":1, "deux":2, "trois":3, "quatre":4, "cinq":5, "six":6, "sept":7, "huit":8, "neuf":9, "dix":10};
+
+function cleanText(t) {
+    let res = t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    PARASITES.forEach(p => {
+        const regex = new RegExp("\\b" + p + "\\b", "gi");
+        res = res.replace(regex, "");
+    });
+    return res.trim();
+}
+
+function parseComposition(text) {
+    const cleaned = cleanText(text);
+    let context = "Parties Privatives";
+    
+    // 1. Identification du contexte (Structure)
+    // On prend souvent ce qui est avant "comprend" ou "nous avons" ou les premiers mots de structure
+    let parts = text.split(/nous avons|il y a|comprend|avec/i);
+    if (parts.length > 1) {
+        context = parts[0].trim().replace(/,/g, '');
     }
 
-    function parseText(text) {
-        const norm = normalize(text);
-        
-        // 1. Extraction Localisation (simplifiée)
-        let location = "Parties Privatives";
-        const locMatch = text.match(/(Bâtiment|Bât|Logement|Appart)\s+\w+/i);
-        if (locMatch) location = locMatch[0];
+    // 2. Identification des pièces et quantités
+    const piecesFound = [];
+    const segments = (parts[1] || parts[0]).toLowerCase().split(/,| et | puis | ainsi qu'/);
 
-        // 2. Extraction des pièces et gestion des quantités
-        let results = [];
-        const segments = norm.split(/,| et |puis/);
+    segments.forEach(seg => {
+        let s = seg.trim();
+        DICT_PIECES.forEach(p => {
+            if (s.includes(p)) {
+                let quantity = 1;
+                const words = s.split(/\s+/);
+                const idx = words.findIndex(w => w.includes(p));
 
-        segments.forEach(seg => {
-            for (let [key, label] of Object.entries(PIECES_LIST)) {
-                if (seg.includes(key)) {
-                    // Chercher un nombre avant la pièce
-                    let quantity = 1;
-                    const words = seg.trim().split(/\s+/);
-                    const idx = words.findIndex(w => w.includes(key));
-                    
-                    if (idx > 0) {
-                        const prevWord = words[idx-1];
-                        if (NUMBERS[prevWord]) quantity = NUMBERS[prevWord];
-                        else if (!isNaN(parseInt(prevWord))) quantity = parseInt(prevWord);
-                    }
-
-                    // Génération numérotée (Chambre 1, Chambre 2...)
-                    if (quantity > 1) {
-                        for (let i = 1; i <= quantity; i++) {
-                            results.push({ loc: location, name: `${label} ${i}` });
-                        }
-                    } else {
-                        results.push({ loc: location, name: label });
-                    }
-                    break; // Évite de trouver "salle de bain" et "bain"
+                if (idx > 0) {
+                    const prev = words[idx-1];
+                    if (!isNaN(parseInt(prev))) quantity = parseInt(prev);
+                    else if (NUM_MAP[prev]) quantity = NUM_MAP[prev];
                 }
+
+                const label = p.charAt(0).toUpperCase() + p.slice(1);
+                if (quantity > 1) {
+                    for (let i = 1; i <= quantity; i++) {
+                        piecesFound.push({ ctx: context, name: `${label} ${i}` });
+                    }
+                } else {
+                    piecesFound.push({ ctx: context, name: label });
+                }
+                s = ""; // Évite de matcher plusieurs fois le même segment
             }
         });
-        return results;
-    }
+    });
 
-    function updateUI() {
-        const text = document.getElementById('mainInput').value;
-        const preview = document.getElementById('preview');
-        const data = parseText(text);
+    return piecesFound;
+}
 
-        if (!text) {
-            preview.innerHTML = "<em>En attente de saisie...</em>";
-            return;
-        }
+function processEntry() {
+    const input = document.getElementById('mainInput');
+    const results = parseComposition(input.value);
+    const tbody = document.getElementById('tableBody');
 
-        preview.innerHTML = data.map(d => `<span class="chip">${d.name}</span>`).join(' ');
-    }
+    if (results.length === 0) return;
 
-    document.getElementById('mainInput').addEventListener('input', updateUI);
-
-    function processEntry() {
-        const text = document.getElementById('mainInput').value;
-        const data = parseText(text);
-        const tbody = document.getElementById('tableBody');
-
-        data.forEach(item => {
-            const row = tbody.insertRow();
-            row.innerHTML = `
-                <td>${item.loc}</td>
-                <td contenteditable="true">${item.name}</td>
-                <td><button class="btn-del" onclick="this.parentElement.parentElement.remove()">🗑️</button></td>
-            `;
-        });
-
-        document.getElementById('mainInput').value = "";
-        updateUI();
-    }
+    results.forEach(item => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td class="contexte-badge">${item.ctx}</td>
+            <td contenteditable="true">${item.name}</td>
+            <td style="text-align:right"><button class="delete-btn" onclick="this.parentElement.parentElement.remove()">✕</button></td>
+        `;
+    });
+    input.value = "";
+}
 </script>
-
 </body>
 </html>
