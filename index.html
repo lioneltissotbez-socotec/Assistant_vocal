@@ -3,325 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Diagnostic Vocal - Immobilier</title>
+    <title>Diagnostic Immo - Saisie Clavier</title>
     <style>
-        /* BASE & RESET */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, system-ui, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 16px;
-            color: #333;
+            background: #f0f2f5;
+            padding: 15px;
+            color: #1a1a1a;
         }
 
         .container {
             max-width: 600px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             overflow: hidden;
         }
 
-        /* HEADER */
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #2563eb;
             color: white;
-            padding: 24px;
+            padding: 20px;
             text-align: center;
         }
-        .header h1 { font-size: 22px; margin-bottom: 8px; }
-        .header p { font-size: 13px; opacity: 0.9; }
 
-        /* STATUS BAR */
-        .status-bar {
-            padding: 10px;
-            font-size: 13px;
-            text-align: center;
-            display: none;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
-        .status-bar.active { display: block; }
-        .status-bar.success { background: #d4edda; color: #155724; }
-        .status-bar.error { background: #f8d7da; color: #721c24; }
-
-        /* INPUT SECTION */
         .input-section { padding: 20px; }
-        .input-group label {
+        
+        label {
             display: block;
             font-weight: 700;
-            margin-bottom: 8px;
-            color: #4a5568;
+            margin-bottom: 10px;
             font-size: 14px;
+            color: #4b5563;
         }
-        .input-wrapper { display: flex; gap: 8px; }
+
+        /* Optimisation pour mobile : focus clair et grande zone de saisie */
         textarea {
-            flex: 1;
-            min-height: 100px;
-            padding: 12px;
-            border: 2px solid #e2e8f0;
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px; /* Évite le zoom auto sur iOS */
+            font-family: inherit;
+            margin-bottom: 15px;
+            transition: border-color 0.2s;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            background: #f8faff;
+        }
+
+        .btn-add {
+            width: 100%;
+            background: #059669;
+            color: white;
+            border: none;
+            padding: 16px;
             border-radius: 12px;
             font-size: 16px;
-            resize: none;
-        }
-        textarea:focus { outline: none; border-color: #667eea; }
-
-        .btn-clear {
-            width: 45px; background: #fee2e2; border: none;
-            color: #ef4444; border-radius: 12px; cursor: pointer;
+            font-weight: 700;
+            cursor: pointer;
         }
 
-        /* CONTROLS */
-        .voice-controls { display: flex; gap: 10px; margin: 15px 0; }
-        .btn {
-            border: none; border-radius: 12px; padding: 14px;
-            font-weight: 700; cursor: pointer; transition: 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
+        .preview-area {
+            background: #f9fafb;
+            padding: 15px;
+            border-top: 1px solid #eee;
+            font-size: 13px;
         }
-        .btn-mic { flex: 1; background: #667eea; color: white; font-size: 16px; }
-        .btn-mic.recording { background: #ef4444; animation: pulse 1.5s infinite; }
-        .btn-add { width: 100%; background: #10b981; color: white; margin-bottom: 15px; }
+
+        .chip {
+            display: inline-block;
+            background: #dcfce7;
+            color: #166534;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin: 2px;
+            font-weight: 500;
+        }
+
+        .table-section { padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; font-size: 12px; color: #6b7280; padding: 8px; border-bottom: 2px solid #eee; }
+        td { padding: 12px 8px; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
         
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-
-        /* PREVIEW */
-        .preview-section { padding: 15px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
-        .preview-box { font-size: 13px; margin-bottom: 5px; }
-        .piece-item {
-            display: inline-block; background: #dcfce7; color: #166534;
-            padding: 2px 8px; border-radius: 4px; margin: 2px;
-        }
-
-        /* TABLE */
-        .table-section { padding: 20px; background: white; }
-        .table-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .data-table { width: 100%; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f1f5f9; padding: 10px; text-align: left; font-size: 12px; }
-        td { padding: 10px; border-top: 1px solid #e2e8f0; font-size: 14px; }
-        
-        .btn-row { padding: 6px; border-radius: 6px; border: none; cursor: pointer; color: white; }
-        .del { background: #ef4444; }
-        .edit { background: #667eea; }
-
-        @media (max-width: 480px) {
-            body { padding: 0; }
-            .container { border-radius: 0; min-height: 100vh; }
-        }
+        .btn-del { background: #fee2e2; color: #ef4444; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1>🏠 Diagnostic Immobilier</h1>
-        <p>Parsing vocal de localisation et pièces</p>
+        <h2>Logiciel Diagnostic</h2>
+        <p>Utilisez le micro du clavier 🎙️</p>
     </div>
-
-    <div id="statusBar" class="status-bar"></div>
 
     <div class="input-section">
-        <div class="input-group">
-            <label>🎙️ Dictée Libre</label>
-            <div class="input-wrapper">
-                <textarea id="mainInput" placeholder="Ex: Bâtiment A logement 2, deux chambres et un séjour..."></textarea>
-                <button class="btn-clear" onclick="clearField()">✕</button>
-            </div>
-        </div>
-
-        <div class="voice-controls">
-            <button id="micBtn" class="btn btn-mic" onclick="toggleMic()">🎤 Commencer la dictée</button>
-        </div>
-
-        <button class="btn btn-add" onclick="parseAndAdd()">✨ Ajouter au tableau</button>
+        <label for="mainInput">Cliquez ci-dessous et utilisez la dictée du clavier :</label>
+        <textarea id="mainInput" placeholder="Ex: Bâtiment A, 2 chambres, un salon, une cuisine..."></textarea>
+        <button class="btn-add" onclick="processEntry()">✅ Valider et ajouter</button>
     </div>
 
-    <div class="preview-section">
-        <div class="preview-box"><strong>📍 Localisation :</strong> <span id="preLoc" style="color:#999">En attente...</span></div>
-        <div class="preview-box"><strong>📋 Pièces :</strong> <span id="prePie" style="color:#999">En attente...</span></div>
+    <div id="preview" class="preview-area">
+        <em>Aperçu en temps réel...</em>
     </div>
 
     <div class="table-section">
-        <div class="table-header">
-            <h3>📊 Inventaire</h3>
-            <button onclick="exportData()" style="color:#667eea; background:none; border:none; font-weight:bold; cursor:pointer;">💾 Exporter JSON</button>
-        </div>
-        <div class="data-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Localisation</th>
-                        <th>Pièce</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="dataTableBody">
-                    <tr><td colspan="3" style="text-align:center; color:#999; padding:20px;">Aucune donnée</td></tr>
-                </tbody>
-            </table>
-        </div>
+        <h3>Inventaire des pièces</h3>
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>Localisation</th>
+                    <th>Désignation</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
     </div>
 </div>
 
 <script>
-    /* CONFIGURATION & DICTIONNAIRE */
-    const PIECES_DICT = {
-        'sejour': 'Séjour', 'salon': 'Salon', 'cuisine': 'Cuisine', 'chambre': 'Chambre',
-        'salle de bain': 'Salle de Bain', 'wc': 'WC', 'toilettes': 'WC', 'entree': 'Entrée',
-        'couloir': 'Couloir', 'cellier': 'Cellier', 'garage': 'Garage', 'balcon': 'Balcon'
+    const PIECES_LIST = {
+        'chambre': 'Chambre',
+        'salon': 'Salon',
+        'sejour': 'Séjour',
+        'cuisine': 'Cuisine',
+        'salle de bain': 'Salle de Bain',
+        'sdb': 'Salle de Bain',
+        'wc': 'WC',
+        'toilettes': 'WC',
+        'entree': 'Entrée',
+        'couloir': 'Couloir',
+        'palier': 'Palier',
+        'garage': 'Garage',
+        'balcon': 'Balcon',
+        'terrasse': 'Terrasse'
     };
 
-    const STOP_WORDS = ['le', 'la', 'les', 'un', 'une', 'des', 'avec', 'et', 'dans', 'nous', 'avons'];
+    const NUMBERS = { 'un': 1, 'une': 1, 'deux': 2, 'trois': 3, 'quatre': 4, 'cinq': 5, 'six': 6 };
 
-    let recognition = null;
-    let isListening = false;
-    let dataStore = [];
-
-    /* RECONNAISSANCE VOCALE */
-    if ('webkitSpeechRecognition' in window) {
-        recognition = new webkitSpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = false;
-        recognition.lang = 'fr-FR';
-
-        recognition.onresult = (e) => {
-            const transcript = e.results[e.results.length - 1][0].transcript;
-            const input = document.getElementById('mainInput');
-            input.value += (input.value ? ' ' : '') + transcript;
-            updatePreview();
-        };
-
-        recognition.onend = () => { if(isListening) recognition.start(); };
+    function normalize(str) {
+        return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     }
 
-    function toggleMic() {
-        if (!recognition) return showStatus("Audio non supporté", "error");
-        const btn = document.getElementById('micBtn');
-        if (!isListening) {
-            isListening = true;
-            recognition.start();
-            btn.classList.add('recording');
-            btn.innerHTML = "⏹️ Arrêter l'écoute";
-            showStatus("Écoute en cours...", "success");
-        } else {
-            isListening = false;
-            recognition.stop();
-            btn.classList.remove('recording');
-            btn.innerHTML = "🎤 Commencer la dictée";
-        }
-    }
-
-    /* LOGIQUE DE PARSING */
-    function normalize(t) {
-        return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-    }
-
-    function extractLocation(text) {
-        const t = normalize(text);
-        let loc = [];
-        const bat = t.match(/batiment\s+(\w+)/);
-        const log = t.match(/logement\s+(\d+)/);
-        const rdc = t.includes('rez de chaussee') || t.includes('rdc');
+    function parseText(text) {
+        const norm = normalize(text);
         
-        if (bat) loc.push("Bât. " + bat[1].toUpperCase());
-        if (log) loc.push("Log. " + log[1]);
-        if (rdc) loc.push("RDC");
-        
-        return loc.length ? loc.join(' - ') : null;
-    }
+        // 1. Extraction Localisation (simplifiée)
+        let location = "Parties Privatives";
+        const locMatch = text.match(/(Bâtiment|Bât|Logement|Appart)\s+\w+/i);
+        if (locMatch) location = locMatch[0];
 
-    function extractPieces(text) {
-        const t = normalize(text);
-        const found = [];
-        const numMap = {'un':1, 'une':1, 'deux':2, 'trois':3, 'quatre':4, 'cinq':5};
-        
-        const segments = t.split(/,| et /);
-        segments.forEach(s => {
-            for (let [key, val] of Object.entries(PIECES_DICT)) {
-                if (s.includes(key)) {
-                    let qty = 1;
-                    const words = s.trim().split(' ');
-                    if (numMap[words[0]]) qty = numMap[words[0]];
-                    else if (!isNaN(parseInt(words[0]))) qty = parseInt(words[0]);
+        // 2. Extraction des pièces et gestion des quantités
+        let results = [];
+        const segments = norm.split(/,| et |puis/);
 
-                    for (let i = 0; i < qty; i++) {
-                        found.push(qty > 1 ? `${val} ${i+1}` : val);
+        segments.forEach(seg => {
+            for (let [key, label] of Object.entries(PIECES_LIST)) {
+                if (seg.includes(key)) {
+                    // Chercher un nombre avant la pièce
+                    let quantity = 1;
+                    const words = seg.trim().split(/\s+/);
+                    const idx = words.findIndex(w => w.includes(key));
+                    
+                    if (idx > 0) {
+                        const prevWord = words[idx-1];
+                        if (NUMBERS[prevWord]) quantity = NUMBERS[prevWord];
+                        else if (!isNaN(parseInt(prevWord))) quantity = parseInt(prevWord);
                     }
+
+                    // Génération numérotée (Chambre 1, Chambre 2...)
+                    if (quantity > 1) {
+                        for (let i = 1; i <= quantity; i++) {
+                            results.push({ loc: location, name: `${label} ${i}` });
+                        }
+                    } else {
+                        results.push({ loc: location, name: label });
+                    }
+                    break; // Évite de trouver "salle de bain" et "bain"
                 }
             }
         });
-        return found;
+        return results;
     }
 
-    /* UI ACTIONS */
-    function updatePreview() {
-        const val = document.getElementById('mainInput').value;
-        const loc = extractLocation(val);
-        const pie = extractPieces(val);
+    function updateUI() {
+        const text = document.getElementById('mainInput').value;
+        const preview = document.getElementById('preview');
+        const data = parseText(text);
 
-        document.getElementById('preLoc').innerHTML = loc ? `<strong>${loc}</strong>` : "Non détectée";
-        document.getElementById('prePie').innerHTML = pie.length ? 
-            pie.map(p => `<span class="piece-item">${p}</span>`).join('') : "Aucune pièce";
-    }
-
-    document.getElementById('mainInput').addEventListener('input', updatePreview);
-
-    function parseAndAdd() {
-        const val = document.getElementById('mainInput').value;
-        const loc = extractLocation(val) || "Indéfini";
-        const pieces = extractPieces(val);
-
-        if (!pieces.length) return showStatus("Aucune pièce détectée", "error");
-
-        pieces.forEach(p => dataStore.push({ localisation: loc, piece: p }));
-        renderTable();
-        clearField();
-        showStatus(`${pieces.length} pièce(s) ajoutée(s)`, "success");
-    }
-
-    function renderTable() {
-        const body = document.getElementById('dataTableBody');
-        if (!dataStore.length) {
-            body.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#999; padding:20px;">Aucune donnée</td></tr>';
+        if (!text) {
+            preview.innerHTML = "<em>En attente de saisie...</em>";
             return;
         }
-        body.innerHTML = dataStore.map((d, i) => `
-            <tr>
-                <td contenteditable="true" onblur="updateEntry(${i},'localisation',this.innerText)">${d.localisation}</td>
-                <td contenteditable="true" onblur="updateEntry(${i},'piece',this.innerText)">${d.piece}</td>
-                <td><button class="btn-row del" onclick="deleteRow(${i})">🗑️</button></td>
-            </tr>
-        `).join('');
+
+        preview.innerHTML = data.map(d => `<span class="chip">${d.name}</span>`).join(' ');
     }
 
-    function updateEntry(i, key, val) { dataStore[i][key] = val; }
+    document.getElementById('mainInput').addEventListener('input', updateUI);
 
-    function deleteRow(i) {
-        dataStore.splice(i, 1);
-        renderTable();
-    }
+    function processEntry() {
+        const text = document.getElementById('mainInput').value;
+        const data = parseText(text);
+        const tbody = document.getElementById('tableBody');
 
-    function clearField() {
+        data.forEach(item => {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td>${item.loc}</td>
+                <td contenteditable="true">${item.name}</td>
+                <td><button class="btn-del" onclick="this.parentElement.parentElement.remove()">🗑️</button></td>
+            `;
+        });
+
         document.getElementById('mainInput').value = "";
-        updatePreview();
-    }
-
-    function showStatus(msg, type) {
-        const s = document.getElementById('statusBar');
-        s.innerText = msg;
-        s.className = `status-bar active ${type}`;
-        setTimeout(() => s.className = "status-bar", 3000);
-    }
-
-    function exportData() {
-        if (!dataStore.length) return showStatus("Rien à exporter", "error");
-        const blob = new Blob([JSON.stringify(dataStore, null, 2)], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = "export_diagnostic.json";
-        a.click();
+        updateUI();
     }
 </script>
 
