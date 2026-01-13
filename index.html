@@ -1,78 +1,664 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Dictée Diagnostic — Localisation + Pièces (Offline)</title>
-  <link rel="stylesheet" href="style.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnostic Vocal - Immobilier</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 16px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .input-section {
+            padding: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-wrapper input,
+        .input-wrapper textarea {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .input-wrapper textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .input-wrapper input:focus,
+        .input-wrapper textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-clear {
+            width: 48px;
+            height: 48px;
+            border: none;
+            background: #ff4757;
+            color: white;
+            border-radius: 12px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .btn-clear:active {
+            transform: scale(0.95);
+        }
+
+        .voice-controls {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .btn-mic {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-start:active {
+            transform: scale(0.98);
+        }
+
+        .btn-stop {
+            background: #ff4757;
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .btn-add {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            background: #2ecc71;
+            color: white;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 12px;
+        }
+
+        .btn-add:active {
+            transform: scale(0.98);
+        }
+
+        .table-section {
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .table-header h2 {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .btn-export {
+            padding: 10px 20px;
+            border: none;
+            background: #667eea;
+            color: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .data-table {
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+
+        .data-table td[contenteditable] {
+            cursor: text;
+            transition: background 0.2s;
+        }
+
+        .data-table td[contenteditable]:hover {
+            background: #f8f9fa;
+        }
+
+        .data-table td[contenteditable]:focus {
+            outline: 2px solid #667eea;
+            background: #fff;
+        }
+
+        .row-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn-action {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .btn-delete {
+            background: #ff4757;
+            color: white;
+        }
+
+        .btn-describe {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-action:active {
+            transform: scale(0.95);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .status-bar {
+            padding: 12px 20px;
+            background: #fff3cd;
+            color: #856404;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+        }
+
+        .status-bar.active {
+            display: block;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 0;
+            }
+
+            .container {
+                border-radius: 0;
+                min-height: 100vh;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .data-table {
+                font-size: 12px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px 6px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="wrap">
-    <header class="top">
-      <div class="title">
-        <h1>Dictée diagnostic</h1>
-        <div class="subtitle">1 champ vocal • mots-clés <span class="kbd">localisation</span> puis <span class="kbd">il y a les pièces suivantes</span></div>
-      </div>
-      <div class="status" id="statusPill">Offline</div>
-    </header>
-
-    <section class="card">
-      <label for="voiceInput">Champ unique (dictée / collage)</label>
-
-      <div class="inputRow">
-        <textarea id="voiceInput" placeholder="Ex:
-localisation, bâtiment A, logement 2, au rez-de-chaussée.
-il y a les pièces suivantes : une cuisine, un séjour, deux chambres, une salle de bain, deux WC séparés"></textarea>
-        <button class="iconBtn" id="btnClearText" title="Vider le champ">✕</button>
-      </div>
-
-      <div class="btnRow">
-        <button class="btn mic" id="btnMic">🎤 Démarrer dictée</button>
-        <button class="btn secondary" id="btnStop" disabled>⏹️ Arrêter</button>
-      </div>
-
-      <div class="btnRow">
-        <button class="btn" id="btnAdd">➕ Ajouter au tableau</button>
-        <button class="btn secondary" id="btnParse">🔎 Prévisualiser</button>
-      </div>
-
-      <div class="btnRow">
-        <button class="btn secondary" id="btnCopy">📋 Copier JSON</button>
-        <button class="btn secondary" id="btnCsv">⬇️ Export CSV</button>
-      </div>
-
-      <div class="hint">
-        Astuce : tu peux dicter “localisation …” puis “il y a les pièces suivantes …”.
-        Le tableau est cumulatif (tu changes de localisation et tu ajoutes).
-      </div>
-
-      <div class="preview">
-        <div class="pill">Localisation détectée : <span id="locPreview">—</span></div>
-        <div class="pill">Pièces détectées : <span id="countPreview">0</span></div>
-      </div>
-    </section>
-
-    <section class="card">
-      <div class="tableHeader">
-        <div class="tableTitle">Tableau (éditable)</div>
-        <div class="tableActions">
-          <button class="btn danger small" id="btnClearTable">🧹 Vider tableau</button>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 Diagnostic Immobilier</h1>
+            <p>Saisie vocale intelligente</p>
         </div>
-      </div>
 
-      <table class="tbl">
-        <thead>
-          <tr>
-            <th style="width:52%">Localisation</th>
-            <th>Pièce</th>
-            <th style="width:120px">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </section>
-  </div>
+        <div class="status-bar" id="statusBar"></div>
 
-  <script src="app.js"></script>
+        <div class="input-section">
+            <div class="input-group">
+                <label>📍 Localisation</label>
+                <div class="input-wrapper">
+                    <input 
+                        type="text" 
+                        id="localisationInput" 
+                        placeholder="Ex: Bâtiment A logement 2 rez de chaussée"
+                    >
+                    <button class="btn-clear" onclick="clearField('localisation')">✕</button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>🏘️ Pièces</label>
+                <div class="input-wrapper">
+                    <textarea 
+                        id="piecesInput" 
+                        placeholder="Ex: deux chambres, un séjour, une cuisine, une salle de bain"
+                    ></textarea>
+                    <button class="btn-clear" onclick="clearField('pieces')">✕</button>
+                </div>
+            </div>
+
+            <div class="voice-controls">
+                <button class="btn-mic btn-start" id="micBtn" onclick="toggleMic()">
+                    🎤 Commencer la dictée
+                </button>
+            </div>
+
+            <button class="btn-add" onclick="addToTable()">
+                ➕ Ajouter au tableau
+            </button>
+        </div>
+
+        <div class="table-section">
+            <div class="table-header">
+                <h2>📋 Données collectées</h2>
+                <button class="btn-export" onclick="exportData()">💾 Exporter</button>
+            </div>
+
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40%">Localisation</th>
+                            <th style="width: 40%">Pièce</th>
+                            <th style="width: 20%">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody">
+                        <tr class="empty-state">
+                            <td colspan="3">Aucune donnée pour le moment</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let recognition = null;
+        let isListening = false;
+        let dataStore = [];
+
+        // Initialisation de la reconnaissance vocale
+        function initSpeechRecognition() {
+            if (!('webkitSpeechRecognition' in window)) {
+                alert('⚠️ La reconnaissance vocale n\'est pas supportée par votre navigateur');
+                return false;
+            }
+
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.lang = 'fr-FR';
+
+            recognition.onresult = (e) => {
+                const lastResult = e.results[e.results.length - 1];
+                if (lastResult.isFinal) {
+                    const transcript = lastResult[0].transcript.trim();
+                    insertTextInFocusedField(transcript);
+                }
+            };
+
+            recognition.onerror = (e) => {
+                console.error('Erreur reconnaissance vocale:', e.error);
+                if (e.error === 'no-speech') {
+                    showStatus('Aucune parole détectée');
+                } else {
+                    showStatus('Erreur: ' + e.error);
+                }
+            };
+
+            recognition.onend = () => {
+                if (isListening) {
+                    recognition.start();
+                }
+            };
+
+            return true;
+        }
+
+        function toggleMic() {
+            if (!recognition && !initSpeechRecognition()) return;
+
+            const btn = document.getElementById('micBtn');
+            
+            if (isListening) {
+                isListening = false;
+                recognition.stop();
+                btn.className = 'btn-mic btn-start';
+                btn.innerHTML = '🎤 Commencer la dictée';
+                showStatus('Micro arrêté');
+            } else {
+                isListening = true;
+                recognition.start();
+                btn.className = 'btn-mic btn-stop';
+                btn.innerHTML = '⏹️ Arrêter la dictée';
+                showStatus('🎙️ Écoute en cours... Parlez maintenant');
+            }
+        }
+
+        function insertTextInFocusedField(text) {
+            const activeEl = document.activeElement;
+            const locInput = document.getElementById('localisationInput');
+            const piecesInput = document.getElementById('piecesInput');
+
+            if (activeEl === locInput || activeEl === piecesInput) {
+                const start = activeEl.selectionStart;
+                const end = activeEl.selectionEnd;
+                const currentValue = activeEl.value;
+                
+                const newValue = currentValue.substring(0, start) + 
+                                (currentValue.substring(0, start).length > 0 ? ' ' : '') +
+                                text + 
+                                currentValue.substring(end);
+                
+                activeEl.value = newValue;
+                activeEl.focus();
+                const newPos = start + text.length + 1;
+                activeEl.setSelectionRange(newPos, newPos);
+            } else {
+                piecesInput.value += (piecesInput.value ? ' ' : '') + text;
+            }
+        }
+
+        function clearField(field) {
+            if (field === 'localisation') {
+                document.getElementById('localisationInput').value = '';
+            } else {
+                document.getElementById('piecesInput').value = '';
+            }
+        }
+
+        function formatLocalisation(text) {
+            if (!text) return '';
+            
+            text = text.trim()
+                .replace(/\s+/g, ' ')
+                .replace(/rez de chaussée|rez-de-chaussée|rdc/gi, 'RDC')
+                .replace(/premier étage|1er étage/gi, '1er étage')
+                .replace(/deuxième étage|2ème étage|2e étage/gi, '2ème étage')
+                .replace(/troisième étage|3ème étage|3e étage/gi, '3ème étage');
+
+            const parts = text.split(/\s+/);
+            const formatted = [];
+            let current = [];
+
+            for (let i = 0; i < parts.length; i++) {
+                const word = parts[i];
+                const lower = word.toLowerCase();
+
+                if (lower === 'logement' || lower === 'étage' || 
+                    (i > 0 && parts[i-1].toLowerCase() === 'bâtiment')) {
+                    if (current.length > 0) {
+                        formatted.push(current.join(' '));
+                        current = [];
+                    }
+                }
+                
+                current.push(word.charAt(0).toUpperCase() + word.slice(1));
+            }
+
+            if (current.length > 0) {
+                formatted.push(current.join(' '));
+            }
+
+            return formatted.join(' - ');
+        }
+
+        function parsePieces(text) {
+            if (!text) return [];
+            
+            const numberMap = {
+                'un': 1, 'une': 1, 'deux': 2, 'trois': 3, 'quatre': 4, 
+                'cinq': 5, 'six': 6, 'sept': 7, 'huit': 8, 'neuf': 9, 'dix': 10
+            };
+
+            text = text.trim()
+                .replace(/\s*,\s*/g, ', ')
+                .replace(/\s+et\s+/g, ', ');
+
+            const segments = text.split(/,|\bet\b/).map(s => s.trim()).filter(s => s);
+            const pieces = [];
+
+            segments.forEach(segment => {
+                const words = segment.split(/\s+/);
+                let quantity = 1;
+                let pieceName = '';
+
+                if (words.length >= 2) {
+                    const firstWord = words[0].toLowerCase();
+                    if (numberMap[firstWord]) {
+                        quantity = numberMap[firstWord];
+                        pieceName = words.slice(1).join(' ');
+                    } else if (!isNaN(parseInt(firstWord))) {
+                        quantity = parseInt(firstWord);
+                        pieceName = words.slice(1).join(' ');
+                    } else {
+                        pieceName = segment;
+                    }
+                } else {
+                    pieceName = segment;
+                }
+
+                pieceName = pieceName.charAt(0).toUpperCase() + pieceName.slice(1);
+                
+                if (quantity > 1) {
+                    for (let i = 1; i <= quantity; i++) {
+                        pieces.push(`${pieceName} ${i}`);
+                    }
+                } else {
+                    pieces.push(pieceName);
+                }
+            });
+
+            return pieces;
+        }
+
+        function addToTable() {
+            const locText = document.getElementById('localisationInput').value;
+            const piecesText = document.getElementById('piecesInput').value;
+
+            if (!locText || !piecesText) {
+                showStatus('⚠️ Veuillez remplir les deux champs');
+                return;
+            }
+
+            const localisation = formatLocalisation(locText);
+            const pieces = parsePieces(piecesText);
+
+            if (pieces.length === 0) {
+                showStatus('⚠️ Aucune pièce détectée');
+                return;
+            }
+
+            pieces.forEach(piece => {
+                dataStore.push({ localisation, piece });
+            });
+
+            renderTable();
+            clearField('pieces');
+            showStatus(`✅ ${pieces.length} pièce(s) ajoutée(s)`);
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('dataTableBody');
+            
+            if (dataStore.length === 0) {
+                tbody.innerHTML = '<tr class="empty-state"><td colspan="3">Aucune donnée pour le moment</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = dataStore.map((row, idx) => `
+                <tr>
+                    <td contenteditable="true" onblur="updateData(${idx}, 'localisation', this.textContent)">${row.localisation}</td>
+                    <td contenteditable="true" onblur="updateData(${idx}, 'piece', this.textContent)">${row.piece}</td>
+                    <td>
+                        <div class="row-actions">
+                            <button class="btn-action btn-delete" onclick="deleteRow(${idx})">🗑️</button>
+                            <button class="btn-action btn-describe" onclick="describeRow(${idx})">🎙️</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateData(idx, field, value) {
+            if (dataStore[idx]) {
+                dataStore[idx][field] = value.trim();
+            }
+        }
+
+        function deleteRow(idx) {
+            if (confirm('Supprimer cette ligne ?')) {
+                dataStore.splice(idx, 1);
+                renderTable();
+                showStatus('✅ Ligne supprimée');
+            }
+        }
+
+        function describeRow(idx) {
+            showStatus('🎙️ Fonction description (à venir)');
+        }
+
+        function exportData() {
+            if (dataStore.length === 0) {
+                showStatus('⚠️ Aucune donnée à exporter');
+                return;
+            }
+
+            let csv = 'Localisation;Pièce\n';
+            dataStore.forEach(row => {
+                csv += `${row.localisation};${row.piece}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `diagnostic_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+            
+            showStatus('✅ Export réussi');
+        }
+
+        function showStatus(message) {
+            const bar = document.getElementById('statusBar');
+            bar.textContent = message;
+            bar.className = 'status-bar active';
+            setTimeout(() => {
+                bar.className = 'status-bar';
+            }, 3000);
+        }
+
+        // Focus automatique sur le champ pièces au démarrage
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('piecesInput').focus();
+        });
+    </script>
 </body>
 </html>
