@@ -143,6 +143,7 @@ const ALIASES = new Map([
   ["pièce à vivre","Séjour"],
   ["chambre","Chambre"],
   ["chambres","Chambre"],
+  ["couloir","Couloir"],
   ["wc","WC"],
   ["wcs","WC"],
   ["toilettes","WC"],
@@ -161,17 +162,30 @@ function cleanNoise(s){
 function splitPieces(listPart){
   if(!listPart) return [];
 
-  let s = listPart;
+  let s = String(listPart);
 
-  // unify separators
+  // Normalize punctuation/separators
+  s = s.replace(/[:]/g, ",");
   s = s.replace(/[.;]/g, ",");
   s = s.replace(/\bet\b/gi, ",");
   s = s.replace(/\n+/g, ",");
 
-  return s.split(",")
+  // If the operator speaks without commas ("une cuisine un séjour deux chambres"),
+  // split on determiners/quantities by inserting commas before them.
+  s = s.replace(/\s+(un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|\d+)\s+/gi, ", $1 ");
+
+  // Also split on "puis" / "ensuite" (common in dictation)
+  s = s.replace(/\b(puis|ensuite)\b/gi, ",");
+
+  return s.split(/,+/)
     .map(x => x.trim())
     .filter(Boolean)
-    .map(c => c.replace(/^(une|un|des|du|de la|de l'|d')\s+/i, "").trim());
+    .map(c => c
+      .replace(/^(les|la|le|l'|l’)\s+/i, "")
+      .replace(/^(une|un|des|du|de la|de l'|de l’|d'|d’)\s+/i, "")
+      .trim()
+    )
+    .filter(Boolean);
 }
 
 function toQty(tok){
@@ -198,7 +212,19 @@ function canonicalize(label){
 
   const key = lowerNoAccent(s);
 
-  // Try longest alias contained
+  // 1) Exact match (strongest)
+  for(const [k, val] of ALIASES.entries()){
+    const kk = lowerNoAccent(k);
+    if(key === kk) return val;
+  }
+
+  // 2) Starts-with match ("wc séparés", "salle de bain principale", etc.)
+  for(const [k, val] of ALIASES.entries()){
+    const kk = lowerNoAccent(k);
+    if(key.startsWith(kk + " ")) return val;
+  }
+
+  // 3) Contained longest (fallback)
   let best = null;
   for(const [k, val] of ALIASES.entries()){
     const kk = lowerNoAccent(k);
@@ -480,16 +506,31 @@ function initSpeech(){
   };
 
   recognition.onerror = (e) => {
-    console.warn("Speech error:", e.error);
-    stopDictation();
-    alert("Erreur dictée : " + (e.error || "inconnue"));
+    const err = e && e.error ? e.error : "";
+    console.warn("Speech error:", err);
+
+    // Keep listening unless operator explicitly stopped.
+    if(!listening) return;
+
+    // Fatal / permission errors -> stop + inform
+    if(err === "not-allowed" || err === "service-not-allowed"){
+      stopDictation();
+      alert("Micro refusé. Autorise l'accès au micro puis réessaie.");
+      return;
+    }
+
+    // Non-fatal (no-speech, network, etc.) -> let onend restart silently
+    try { recognition.stop(); } catch {}
   };
 
   recognition.onend = () => {
-    // Chrome may stop by itself in continuous mode
-    if(listening){
+    // Chrome stops after silence even in continuous mode.
+    // Restart as long as the operator didn't press STOP.
+    if(!listening) return;
+    setTimeout(() => {
+      if(!listening) return;
       try { recognition.start(); } catch {}
-    }
+    }, 250);
   };
 
   return recognition;
