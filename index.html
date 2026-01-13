@@ -67,9 +67,10 @@
             gap: 8px;
         }
 
-        .input-wrapper input,
         .input-wrapper textarea {
             flex: 1;
+            resize: vertical;
+            min-height: 120px;
             padding: 14px;
             border: 2px solid #e0e0e0;
             border-radius: 12px;
@@ -78,12 +79,6 @@
             transition: all 0.3s;
         }
 
-        .input-wrapper textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .input-wrapper input:focus,
         .input-wrapper textarea:focus {
             outline: none;
             border-color: #667eea;
@@ -164,6 +159,45 @@
 
         .btn-add:active {
             transform: scale(0.98);
+        }
+
+        .preview-section {
+            padding: 16px 20px;
+            background: #f8f9fa;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .preview-section h3 {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 12px;
+        }
+
+        .preview-box {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .preview-box.location {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .preview-box.pieces {
+            color: #2ecc71;
+        }
+
+        .preview-box .piece-item {
+            display: inline-block;
+            background: #e8f5e9;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin: 2px;
+            font-size: 13px;
         }
 
         .table-section {
@@ -286,6 +320,16 @@
             display: block;
         }
 
+        .status-bar.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-bar.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
         @media (max-width: 480px) {
             body {
                 padding: 0;
@@ -315,32 +359,20 @@
     <div class="container">
         <div class="header">
             <h1>🏠 Diagnostic Immobilier</h1>
-            <p>Saisie vocale intelligente</p>
+            <p>Saisie vocale intelligente - Parsing automatique</p>
         </div>
 
         <div class="status-bar" id="statusBar"></div>
 
         <div class="input-section">
             <div class="input-group">
-                <label>📍 Localisation</label>
-                <div class="input-wrapper">
-                    <input 
-                        type="text" 
-                        id="localisationInput" 
-                        placeholder="Ex: Bâtiment A logement 2 rez de chaussée"
-                    >
-                    <button class="btn-clear" onclick="clearField('localisation')">✕</button>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label>🏘️ Pièces</label>
+                <label>🎤 Dictée complète (Localisation + Pièces)</label>
                 <div class="input-wrapper">
                     <textarea 
-                        id="piecesInput" 
-                        placeholder="Ex: deux chambres, un séjour, une cuisine, une salle de bain"
+                        id="mainInput" 
+                        placeholder="Ex: Bâtiment A logement 2 rez de chaussée avec deux chambres, un séjour, une cuisine et une salle de bain"
                     ></textarea>
-                    <button class="btn-clear" onclick="clearField('pieces')">✕</button>
+                    <button class="btn-clear" onclick="clearField()">✕</button>
                 </div>
             </div>
 
@@ -350,14 +382,24 @@
                 </button>
             </div>
 
-            <button class="btn-add" onclick="addToTable()">
-                ➕ Ajouter au tableau
+            <button class="btn-add" onclick="parseAndAdd()">
+                ✨ Parser et ajouter
             </button>
+        </div>
+
+        <div class="preview-section">
+            <h3>📋 Aperçu du parsing</h3>
+            <div class="preview-box location" id="previewLocation">
+                Localisation : <span style="color: #999;">en attente...</span>
+            </div>
+            <div class="preview-box pieces" id="previewPieces">
+                Pièces : <span style="color: #999;">en attente...</span>
+            </div>
         </div>
 
         <div class="table-section">
             <div class="table-header">
-                <h2>📋 Données collectées</h2>
+                <h2>📊 Données collectées</h2>
                 <button class="btn-export" onclick="exportData()">💾 Exporter</button>
             </div>
 
@@ -385,10 +427,148 @@
         let isListening = false;
         let dataStore = [];
 
+        // Dictionnaire des pièces reconnues
+        const PIECES_DICT = {
+            // Habitat - logements
+            'entree': 'Entrée',
+            'hall': 'Hall d\'entrée',
+            'hall d\'entree': 'Hall d\'entrée',
+            'vestibule': 'Vestibule',
+            'degagement': 'Dégagement',
+            'couloir': 'Couloir',
+            'circulation': 'Circulation',
+            'palier': 'Palier intérieur',
+            'palier interieur': 'Palier intérieur',
+            'sejour': 'Séjour',
+            'salon': 'Salon',
+            'salle de sejour': 'Salle de séjour',
+            'sejour salon': 'Séjour salon',
+            'piece de vie': 'Pièce de vie',
+            'salle a vivre': 'Salle à vivre',
+            'living': 'Living',
+            'salle a manger': 'Salle à manger',
+            'coin repas': 'Coin repas',
+            'cuisine': 'Cuisine',
+            'cuisine ouverte': 'Cuisine ouverte',
+            'cuisine americaine': 'Cuisine américaine',
+            'coin cuisine': 'Coin cuisine',
+            'kitchenette': 'Kitchenette',
+            'arriere cuisine': 'Arrière-cuisine',
+            'chambre': 'Chambre',
+            'chambre parentale': 'Chambre parentale',
+            'suite parentale': 'Suite parentale',
+            'coin nuit': 'Coin nuit',
+            'bureau': 'Bureau',
+            'piece bureau': 'Pièce bureau',
+            'salle de bain': 'Salle de bain',
+            'salle de bains': 'Salle de bain',
+            'salle d\'eau': 'Salle d\'eau',
+            'salle de douche': 'Salle de douche',
+            'sdb': 'Salle de bain',
+            'sde': 'Salle d\'eau',
+            'wc': 'WC',
+            'toilettes': 'Toilettes',
+            'sanitaires': 'Sanitaires',
+            'cabinet d\'aisance': 'Cabinet d\'aisance',
+            'dressing': 'Dressing',
+            'placard': 'Placard',
+            'placard mural': 'Placard mural',
+            'penderie': 'Penderie',
+            'buanderie': 'Buanderie',
+            'lingerie': 'Lingerie',
+            'cellier': 'Cellier',
+            'reserve': 'Réserve',
+            'debarras': 'Débarras',
+            'grenier': 'Grenier',
+            'combles': 'Combles',
+            'combles amenages': 'Combles aménagés',
+            'combles perdus': 'Combles perdus',
+            'cave': 'Cave',
+            'cave voutee': 'Cave voûtée',
+            'cave privative': 'Cave privative',
+            'garage': 'Garage',
+            'box': 'Box',
+            'parking': 'Parking',
+            'stationnement': 'Stationnement',
+            'balcon': 'Balcon',
+            'terrasse': 'Terrasse',
+            'loggia': 'Loggia',
+            'veranda': 'Véranda',
+            // Tertiaire
+            'open space': 'Open space',
+            'plateau': 'Plateau de bureaux',
+            'salle de reunion': 'Salle de réunion',
+            'salle de conference': 'Salle de conférence',
+            'salle de formation': 'Salle de formation',
+            'accueil': 'Accueil',
+            'reception': 'Réception',
+            'local informatique': 'Local informatique',
+            'salle serveur': 'Salle serveur',
+            'reprographie': 'Reprographie',
+            'cafeteria': 'Cafétéria',
+            'salle de pause': 'Salle de pause',
+            'archives': 'Archives',
+            'vestiaires': 'Vestiaires',
+            'vestiaire': 'Vestiaire',
+            // Locaux techniques
+            'local technique': 'Local technique',
+            'local electrique': 'Local électrique',
+            'chaufferie': 'Chaufferie',
+            'local chaudiere': 'Local chaudière',
+            'local pac': 'Local PAC',
+            'local vmc': 'Local VMC',
+            'local menage': 'Local ménage',
+            'local entretien': 'Local entretien',
+            'local dechets': 'Local déchets',
+            'local poubelles': 'Local poubelles',
+            'stock': 'Stock',
+            'stockage': 'Stockage',
+            // ERP
+            'salle polyvalente': 'Salle polyvalente',
+            'salle des fetes': 'Salle des fêtes',
+            'salle de sport': 'Salle de sport',
+            'gymnase': 'Gymnase',
+            'douches': 'Douches',
+            'cuisine professionnelle': 'Cuisine professionnelle',
+            'plonge': 'Plonge',
+            'office': 'Office',
+            'chambre froide': 'Chambre froide',
+            'salle de classe': 'Salle de classe',
+            'amphitheatre': 'Amphithéâtre',
+            'laboratoire': 'Laboratoire'
+        };
+
+        // Mots de localisation
+        const LOCATION_KEYWORDS = new Set([
+            'batiment', 'immeuble', 'residence', 'site', 'aile',
+            'logement', 'appartement', 'lot', 'studio', 'duplex',
+            'etage', 'niveau', 'rez de chaussee', 'rdc', 'sous-sol',
+            'entree', 'escalier', 'ascenseur'
+        ]);
+
+        // Mots parasites à ignorer
+        const STOP_WORDS = new Set([
+            'alors', 'donc', 'voila', 'bon', 'ok', 'euh', 'hein', 'hum', 'ben', 'bah',
+            'tu', 'vois', 'vous', 'voyez', 'ici', 'la', 'juste', 'plutot', 'environ',
+            'a', 'peu', 'pres', 'par', 'on', 'nous', 'avons', 'il', 'y', 'c\'est',
+            'ce', 'sont', 'ca', 'correspond', 'est', 'dans', 'passe', 'je', 'dirais',
+            'pense', 'peut', 'etre', 'peut-etre', 'normalement', 'en', 'fait',
+            'globalement', 'plusieurs', 'quelques', 'avec', 'sans', 'pour', 'ou',
+            'le', 'la', 'les', 'un', 'une', 'des', 'de', 'du'
+        ]);
+
+        function normalizeText(text) {
+            return text.toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/['']/g, '\'')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
         // Initialisation de la reconnaissance vocale
         function initSpeechRecognition() {
             if (!('webkitSpeechRecognition' in window)) {
-                alert('⚠️ La reconnaissance vocale n\'est pas supportée par votre navigateur');
+                showStatus('⚠️ La reconnaissance vocale n\'est pas supportée par votre navigateur', 'error');
                 return false;
             }
 
@@ -401,16 +581,16 @@
                 const lastResult = e.results[e.results.length - 1];
                 if (lastResult.isFinal) {
                     const transcript = lastResult[0].transcript.trim();
-                    insertTextInFocusedField(transcript);
+                    insertText(transcript);
                 }
             };
 
             recognition.onerror = (e) => {
                 console.error('Erreur reconnaissance vocale:', e.error);
                 if (e.error === 'no-speech') {
-                    showStatus('Aucune parole détectée');
+                    showStatus('Aucune parole détectée', 'error');
                 } else {
-                    showStatus('Erreur: ' + e.error);
+                    showStatus('Erreur: ' + e.error, 'error');
                 }
             };
 
@@ -433,157 +613,223 @@
                 recognition.stop();
                 btn.className = 'btn-mic btn-start';
                 btn.innerHTML = '🎤 Commencer la dictée';
-                showStatus('Micro arrêté');
+                showStatus('Micro arrêté', 'success');
             } else {
                 isListening = true;
                 recognition.start();
                 btn.className = 'btn-mic btn-stop';
                 btn.innerHTML = '⏹️ Arrêter la dictée';
-                showStatus('🎙️ Écoute en cours... Parlez maintenant');
+                showStatus('🎙️ Écoute en cours... Parlez maintenant', 'success');
             }
         }
 
-        function insertTextInFocusedField(text) {
-            const activeEl = document.activeElement;
-            const locInput = document.getElementById('localisationInput');
-            const piecesInput = document.getElementById('piecesInput');
-
-            if (activeEl === locInput || activeEl === piecesInput) {
-                const start = activeEl.selectionStart;
-                const end = activeEl.selectionEnd;
-                const currentValue = activeEl.value;
-                
-                const newValue = currentValue.substring(0, start) + 
-                                (currentValue.substring(0, start).length > 0 ? ' ' : '') +
-                                text + 
-                                currentValue.substring(end);
-                
-                activeEl.value = newValue;
-                activeEl.focus();
-                const newPos = start + text.length + 1;
-                activeEl.setSelectionRange(newPos, newPos);
-            } else {
-                piecesInput.value += (piecesInput.value ? ' ' : '') + text;
-            }
-        }
-
-        function clearField(field) {
-            if (field === 'localisation') {
-                document.getElementById('localisationInput').value = '';
-            } else {
-                document.getElementById('piecesInput').value = '';
-            }
-        }
-
-        function formatLocalisation(text) {
-            if (!text) return '';
+        function insertText(text) {
+            const input = document.getElementById('mainInput');
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            const currentValue = input.value;
             
-            text = text.trim()
-                .replace(/\s+/g, ' ')
-                .replace(/rez de chaussée|rez-de-chaussée|rdc/gi, 'RDC')
-                .replace(/premier étage|1er étage/gi, '1er étage')
-                .replace(/deuxième étage|2ème étage|2e étage/gi, '2ème étage')
-                .replace(/troisième étage|3ème étage|3e étage/gi, '3ème étage');
+            const newValue = currentValue.substring(0, start) + 
+                            (currentValue.substring(0, start).length > 0 ? ' ' : '') +
+                            text + 
+                            currentValue.substring(end);
+            
+            input.value = newValue;
+            input.focus();
+            
+            // Mise à jour preview en temps réel
+            updatePreview();
+        }
 
-            const parts = text.split(/\s+/);
-            const formatted = [];
-            let current = [];
+        function clearField() {
+            document.getElementById('mainInput').value = '';
+            updatePreview();
+        }
 
-            for (let i = 0; i < parts.length; i++) {
-                const word = parts[i];
-                const lower = word.toLowerCase();
-
-                if (lower === 'logement' || lower === 'étage' || 
-                    (i > 0 && parts[i-1].toLowerCase() === 'bâtiment')) {
-                    if (current.length > 0) {
-                        formatted.push(current.join(' '));
-                        current = [];
-                    }
+        function extractLocation(text) {
+            const normalized = normalizeText(text);
+            const words = normalized.split(' ');
+            
+            let locationParts = [];
+            let i = 0;
+            
+            while (i < words.length) {
+                const word = words[i];
+                
+                // Détection bâtiment
+                if (word === 'batiment' && i + 1 < words.length) {
+                    locationParts.push('Bâtiment ' + words[i + 1].toUpperCase());
+                    i += 2;
+                    continue;
                 }
                 
-                current.push(word.charAt(0).toUpperCase() + word.slice(1));
+                // Détection logement/appartement
+                if ((word === 'logement' || word === 'appartement') && i + 1 < words.length) {
+                    locationParts.push('Logement ' + words[i + 1]);
+                    i += 2;
+                    continue;
+                }
+                
+                // Détection étage
+                if (word === 'rez' || word === 'rdc') {
+                    locationParts.push('RDC');
+                    i += 3; // skip "de chaussée"
+                    continue;
+                }
+                
+                if (word === 'etage') {
+                    if (i > 0) {
+                        const prev = words[i - 1];
+                        if (prev === 'premier' || prev === '1er') {
+                            locationParts.push('1er étage');
+                        } else if (prev === 'deuxieme' || prev === '2eme' || prev === '2e') {
+                            locationParts.push('2ème étage');
+                        } else if (prev === 'troisieme' || prev === '3eme' || prev === '3e') {
+                            locationParts.push('3ème étage');
+                        }
+                    }
+                    i++;
+                    continue;
+                }
+                
+                i++;
             }
-
-            if (current.length > 0) {
-                formatted.push(current.join(' '));
-            }
-
-            return formatted.join(' - ');
+            
+            return locationParts.length > 0 ? locationParts.join(' - ') : null;
         }
 
-        function parsePieces(text) {
-            if (!text) return [];
+        function extractPieces(text) {
+            const normalized = normalizeText(text);
             
             const numberMap = {
                 'un': 1, 'une': 1, 'deux': 2, 'trois': 3, 'quatre': 4, 
                 'cinq': 5, 'six': 6, 'sept': 7, 'huit': 8, 'neuf': 9, 'dix': 10
             };
 
-            text = text.trim()
-                .replace(/\s*,\s*/g, ', ')
-                .replace(/\s+et\s+/g, ', ');
+            // Séparation par virgules et "et"
+            const segments = normalized
+                .replace(/\s*,\s*/g, '|')
+                .replace(/\s+et\s+/g, '|')
+                .split('|')
+                .map(s => s.trim())
+                .filter(s => s);
 
-            const segments = text.split(/,|\bet\b/).map(s => s.trim()).filter(s => s);
             const pieces = [];
 
             segments.forEach(segment => {
-                const words = segment.split(/\s+/);
-                let quantity = 1;
-                let pieceName = '';
+                // Nettoyage des mots parasites
+                let words = segment.split(/\s+/).filter(w => !STOP_WORDS.has(w));
+                
+                if (words.length === 0) return;
 
-                if (words.length >= 2) {
-                    const firstWord = words[0].toLowerCase();
-                    if (numberMap[firstWord]) {
-                        quantity = numberMap[firstWord];
-                        pieceName = words.slice(1).join(' ');
-                    } else if (!isNaN(parseInt(firstWord))) {
-                        quantity = parseInt(firstWord);
-                        pieceName = words.slice(1).join(' ');
-                    } else {
-                        pieceName = segment;
-                    }
-                } else {
-                    pieceName = segment;
+                let quantity = 1;
+
+                // Détection quantité
+                const firstWord = words[0];
+                if (numberMap[firstWord]) {
+                    quantity = numberMap[firstWord];
+                    words = words.slice(1);
+                } else if (!isNaN(parseInt(firstWord))) {
+                    quantity = parseInt(firstWord);
+                    words = words.slice(1);
                 }
 
-                pieceName = pieceName.charAt(0).toUpperCase() + pieceName.slice(1);
+                if (words.length === 0) return;
+
+                // Recherche de correspondance dans le dictionnaire
+                let matchedPiece = null;
                 
+                for (let len = words.length; len > 0; len--) {
+                    const testKey = words.slice(0, len).join(' ');
+                    
+                    if (PIECES_DICT[testKey]) {
+                        matchedPiece = PIECES_DICT[testKey];
+                        break;
+                    }
+                    
+                    for (const [key, value] of Object.entries(PIECES_DICT)) {
+                        if (key.startsWith(testKey) || testKey.startsWith(key)) {
+                            matchedPiece = value;
+                            break;
+                        }
+                    }
+                    
+                    if (matchedPiece) break;
+                }
+
+                // Si pas de correspondance, on ignore (c'est probablement du contexte de localisation)
+                if (!matchedPiece) return;
+
+                // Ajout avec quantité
                 if (quantity > 1) {
                     for (let i = 1; i <= quantity; i++) {
-                        pieces.push(`${pieceName} ${i}`);
+                        pieces.push(`${matchedPiece} ${i}`);
                     }
                 } else {
-                    pieces.push(pieceName);
+                    pieces.push(matchedPiece);
                 }
             });
 
             return pieces;
         }
 
-        function addToTable() {
-            const locText = document.getElementById('localisationInput').value;
-            const piecesText = document.getElementById('piecesInput').value;
-
-            if (!locText || !piecesText) {
-                showStatus('⚠️ Veuillez remplir les deux champs');
+        function updatePreview() {
+            const text = document.getElementById('mainInput').value;
+            
+            if (!text.trim()) {
+                document.getElementById('previewLocation').innerHTML = 
+                    'Localisation : <span style="color: #999;">en attente...</span>';
+                document.getElementById('previewPieces').innerHTML = 
+                    'Pièces : <span style="color: #999;">en attente...</span>';
                 return;
             }
 
-            const localisation = formatLocalisation(locText);
-            const pieces = parsePieces(piecesText);
+            const location = extractLocation(text);
+            const pieces = extractPieces(text);
+
+            document.getElementById('previewLocation').innerHTML = 
+                `Localisation : <strong>${location || '<span style="color: #ff4757;">Non détectée</span>'}</strong>`;
+            
+            if (pieces.length > 0) {
+                const piecesHtml = pieces.map(p => `<span class="piece-item">${p}</span>`).join(' ');
+                document.getElementById('previewPieces').innerHTML = `Pièces (${pieces.length}) : ${piecesHtml}`;
+            } else {
+                document.getElementById('previewPieces').innerHTML = 
+                    'Pièces : <span style="color: #ff4757;">Aucune détectée</span>';
+            }
+        }
+
+        // Mise à jour preview en temps réel
+        document.getElementById('mainInput').addEventListener('input', updatePreview);
+
+        function parseAndAdd() {
+            const text = document.getElementById('mainInput').value;
+
+            if (!text.trim()) {
+                showStatus('⚠️ Veuillez saisir du texte', 'error');
+                return;
+            }
+
+            const location = extractLocation(text);
+            const pieces = extractPieces(text);
+
+            if (!location) {
+                showStatus('⚠️ Localisation non détectée', 'error');
+                return;
+            }
 
             if (pieces.length === 0) {
-                showStatus('⚠️ Aucune pièce détectée');
+                showStatus('⚠️ Aucune pièce détectée', 'error');
                 return;
             }
 
             pieces.forEach(piece => {
-                dataStore.push({ localisation, piece });
+                dataStore.push({ localisation: location, piece });
             });
 
             renderTable();
-            clearField('pieces');
-            showStatus(`✅ ${pieces.length} pièce(s) ajoutée(s)`);
+            clearField();
+            showStatus(`✅ ${pieces.length} pièce(s) ajoutée(s) avec succès`, 'success');
         }
 
         function renderTable() {
@@ -618,47 +864,14 @@
             if (confirm('Supprimer cette ligne ?')) {
                 dataStore.splice(idx, 1);
                 renderTable();
-                showStatus('✅ Ligne supprimée');
+                showStatus('✅ Ligne supprimée', 'success');
             }
         }
 
         function describeRow(idx) {
-            showStatus('🎙️ Fonction description (à venir)');
+            showStatus('🎙️ Fonction description (à venir)', 'success');
         }
 
         function exportData() {
             if (dataStore.length === 0) {
-                showStatus('⚠️ Aucune donnée à exporter');
-                return;
-            }
-
-            let csv = 'Localisation;Pièce\n';
-            dataStore.forEach(row => {
-                csv += `${row.localisation};${row.piece}\n`;
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `diagnostic_${new Date().toISOString().slice(0,10)}.csv`;
-            link.click();
-            
-            showStatus('✅ Export réussi');
-        }
-
-        function showStatus(message) {
-            const bar = document.getElementById('statusBar');
-            bar.textContent = message;
-            bar.className = 'status-bar active';
-            setTimeout(() => {
-                bar.className = 'status-bar';
-            }, 3000);
-        }
-
-        // Focus automatique sur le champ pièces au démarrage
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('piecesInput').focus();
-        });
-    </script>
-</body>
-</html>
+                showStatus('⚠️ Auc
