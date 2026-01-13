@@ -1,78 +1,27 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Dictée Diagnostic — Localisation + Pièces (Offline)</title>
-  <link rel="stylesheet" href="style.css"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test saisie vocale – Pièces</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="wrap">
-    <header class="card header">
-      <div>
-        <h1>Dictée Diagnostic</h1>
-        <p class="sub">1 champ • mots-clés <span class="kbd">localisation</span> puis <span class="kbd">il y a les pièces suivantes</span> • offline</p>
-      </div>
-      <div class="status">
-        <span class="pill" id="micStatus">Micro: prêt</span>
-        <span class="pill" id="parseStatus">Parsing: —</span>
-      </div>
-    </header>
 
-    <section class="card">
-      <label class="label">Champ unique (dictée / texte)</label>
-      <textarea id="dict" class="dict" placeholder="Ex:
-localisation bâtiment A logement 2 au rez de chaussée
-il y a les pièces suivantes : une cuisine, un séjour, deux chambres, une salle de bain, deux WC séparés"></textarea>
+<header>
+  <h1>Test saisie vocale – Pièces</h1>
+</header>
 
-      <div class="btnRow">
-        <button class="btn mic" id="micBtn">🎤 Démarrer la dictée</button>
-        <button class="btn secondary" id="clearBtn">✕ Vider</button>
-      </div>
+<main>
+  <button id="btn-mic">🎤 Démarrer la dictée</button>
 
-      <div class="btnRow">
-        <button class="btn" id="addBtn">➕ Ajouter au tableau</button>
-        <button class="btn secondary" id="resetBtn">🧹 Vider le tableau</button>
-      </div>
+  <h2>Texte reconnu</h2>
+  <textarea id="raw-text" placeholder="Le texte reconnu apparaîtra ici…"></textarea>
 
-      <div class="preview">
-        <div class="previewBox">
-          <div class="previewTitle">Localisation détectée</div>
-          <div class="previewVal" id="locPreview">—</div>
-        </div>
-        <div class="previewBox">
-          <div class="previewTitle">Pièces détectées</div>
-          <div class="previewVal" id="roomsPreview">—</div>
-        </div>
-      </div>
+  <h2>Résultat structuré</h2>
+  <div id="result"></div>
+</main>
 
-      <p class="hint">
-        Astuces dictée: marque une pause après les virgules. Tu peux dire « deux WC séparés ».
-        Le système ignore le blabla et ne conserve que les noms de pièces reconnus.
-      </p>
-    </section>
-
-    <section class="card">
-      <div class="tableHeader">
-        <h2>Tableau (éditable)</h2>
-        <button class="btn tiny secondary" id="exportBtn">⬇️ Export CSV</button>
-      </div>
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Localisation</th>
-              <th>Pièce</th>
-              <th class="actCol">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
-      </div>
-      <p class="hint">Chaque cellule est éditable. 🗑️ supprime la ligne. 🎙️ est réservé pour un descriptif futur.</p>
-    </section>
-  </div>
-
-  <script src="app.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
