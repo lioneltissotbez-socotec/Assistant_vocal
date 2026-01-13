@@ -1,27 +1,49 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test saisie vocale – Pièces</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <title>Test saisie vocale – Pièces (LICIEL)</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <header class="app-header">
+    <div class="title">🎙️ Saisie vocale – Pièces</div>
+    <div class="subtitle">Sortie structurée : <strong>Bâtiment</strong> + <strong>Pièces</strong></div>
+  </header>
 
-<header>
-  <h1>Test saisie vocale – Pièces</h1>
-</header>
+  <main class="app-main">
+    <section class="card">
+      <label for="raw-text">Texte reconnu / à tester</label>
 
-<main>
-  <button id="btn-mic">🎤 Démarrer la dictée</button>
+      <div class="row">
+        <textarea id="raw-text" placeholder="Ex : Bâtiment A, logement 2, nous avons une cuisine, un séjour et deux chambres."></textarea>
+      </div>
 
-  <h2>Texte reconnu</h2>
-  <textarea id="raw-text" placeholder="Le texte reconnu apparaîtra ici…"></textarea>
+      <div class="actions">
+        <button id="btn-mic" class="primary" type="button">🎤 Dicter</button>
+        <button id="btn-parse" class="secondary" type="button">🔎 Analyser</button>
+        <button id="btn-clear" class="ghost" type="button">🧹 Vider</button>
+      </div>
 
-  <h2>Résultat structuré</h2>
-  <div id="result"></div>
-</main>
+      <p class="hint">
+        Astuce : commence par <em>“Bâtiment A”</em> / <em>“Logement 3”</em> / <em>“Appartement 12”</em>, puis <em>“nous avons …”</em>.
+      </p>
+    </section>
 
-<script src="script.js"></script>
+    <section class="card">
+      <div class="card-head">
+        <h2>Résultat</h2>
+        <button id="btn-copy" class="ghost" type="button">📋 Copier JSON</button>
+      </div>
+      <div id="result" class="result"></div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>Prototype terrain – offline</span>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
