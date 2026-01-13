@@ -32,12 +32,21 @@
     </section>
 
     <section class="card">
-      <div class="card-head">
-        <h2>Résultat</h2>
-        <button id="btn-copy" class="ghost" type="button">📋 Copier JSON</button>
-      </div>
-      <div id="result" class="result"></div>
-    </section>
+  <div class="row-stacked">
+    <label for="ctx-text">📍 Bâtiment / Logement</label>
+    <input type="text" id="ctx-text" placeholder="Ex: Bâtiment A, Logement 2" class="input-field">
+  </div>
+
+  <div class="row-stacked">
+    <label for="raw-text">🎙️ Liste des pièces</label>
+    <textarea id="raw-text" placeholder="Ex: une cuisine, deux chambres..."></textarea>
+  </div>
+
+  <div class="actions">
+    <button id="btn-mic" class="primary" type="button">🎤 Commencer la dictée</button>
+    <button id="btn-clear" class="ghost" type="button">🧹 Vider</button>
+  </div>
+</section>
   </main>
 
   <footer class="app-footer">
