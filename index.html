@@ -3,55 +3,55 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-  <title>Test saisie vocale – Pièces (LICIEL)</title>
+  <title>LICIEL - Saisie Terrain</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="app-header">
-    <div class="title">🎙️ Saisie vocale – Pièces</div>
-    <div class="subtitle">Sortie structurée : <strong>Bâtiment</strong> + <strong>Pièces</strong></div>
+    <div class="title">🎙️ Diagnostic Terrain - LICIEL</div>
+    <div class="subtitle">Saisie vocale structurée</div>
   </header>
 
   <main class="app-main">
     <section class="card">
-      <label for="raw-text">Texte reconnu / à tester</label>
+      <div class="input-group">
+        <label for="ctx-text">📍 Bâtiment / Logement / Lot</label>
+        <input type="text" id="ctx-text" placeholder="Ex: Bâtiment A, Logement 2" class="input-field">
+      </div>
 
-      <div class="row">
-        <textarea id="raw-text" placeholder="Ex : Bâtiment A, logement 2, nous avons une cuisine, un séjour et deux chambres."></textarea>
+      <div class="input-group">
+        <label for="raw-text">🏠 Liste des pièces</label>
+        <textarea id="raw-text" placeholder="Ex: une cuisine, deux chambres, un séjour..."></textarea>
       </div>
 
       <div class="actions">
-        <button id="btn-mic" class="primary" type="button">🎤 Dicter</button>
-        <button id="btn-parse" class="secondary" type="button">🔎 Analyser</button>
+        <button id="btn-mic" class="primary" type="button">🎤 Commencer la dictée</button>
         <button id="btn-clear" class="ghost" type="button">🧹 Vider</button>
       </div>
-
-      <p class="hint">
-        Astuce : commence par <em>“Bâtiment A”</em> / <em>“Logement 3”</em> / <em>“Appartement 12”</em>, puis <em>“nous avons …”</em>.
-      </p>
+      <p class="hint">Cliquez sur un champ puis sur "Dicter".</p>
     </section>
 
     <section class="card">
-  <div class="row-stacked">
-    <label for="ctx-text">📍 Bâtiment / Logement</label>
-    <input type="text" id="ctx-text" placeholder="Ex: Bâtiment A, Logement 2" class="input-field">
-  </div>
-
-  <div class="row-stacked">
-    <label for="raw-text">🎙️ Liste des pièces</label>
-    <textarea id="raw-text" placeholder="Ex: une cuisine, deux chambres..."></textarea>
-  </div>
-
-  <div class="actions">
-    <button id="btn-mic" class="primary" type="button">🎤 Commencer la dictée</button>
-    <button id="btn-clear" class="ghost" type="button">🧹 Vider</button>
-  </div>
-</section>
+      <div class="card-head">
+        <h2>Tableau des pièces</h2>
+        <button id="btn-copy" class="ghost" type="button">📋 Copier JSON</button>
+      </div>
+      
+      <div class="table-container">
+        <table id="pieces-table">
+          <thead>
+            <tr>
+              <th>Bâtiment</th>
+              <th>Pièce</th>
+              <th style="width: 80px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            </tbody>
+        </table>
+      </div>
+    </section>
   </main>
-
-  <footer class="app-footer">
-    <span>Prototype terrain – offline</span>
-  </footer>
 
   <script src="script.js"></script>
 </body>
