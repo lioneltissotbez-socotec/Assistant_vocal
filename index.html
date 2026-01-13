@@ -9,41 +9,47 @@
 <body>
   <header class="app-header">
     <div class="title">🎙️ Diagnostic Terrain - LICIEL</div>
-    <div class="subtitle">Saisie vocale structurée</div>
+    <div class="subtitle">Saisie structurée & persistante</div>
   </header>
 
   <main class="app-main">
     <section class="card">
       <div class="input-group">
-        <label for="ctx-text">📍 Bâtiment / Logement / Lot</label>
-        <input type="text" id="ctx-text" placeholder="Ex: Bâtiment A, Logement 2" class="input-field">
+        <label for="ctx-text">📍 Bâtiment / Logement / Localisation</label>
+        <div class="input-with-clear">
+          <input type="text" id="ctx-text" placeholder="Ex: Bâtiment A logement 2 RDC" class="input-field">
+          <button class="btn-clear-field" onclick="clearField('ctx-text')">✕</button>
+        </div>
       </div>
 
       <div class="input-group">
-        <label for="raw-text">🏠 Liste des pièces</label>
-        <textarea id="raw-text" placeholder="Ex: une cuisine, deux chambres, un séjour..."></textarea>
+        <label for="raw-text">🏠 Liste des pièces (Ajout progressif)</label>
+        <div class="input-with-clear">
+          <textarea id="raw-text" placeholder="Ex: deux chambres, un séjour..."></textarea>
+          <button class="btn-clear-field" onclick="clearField('raw-text')">✕</button>
+        </div>
       </div>
 
       <div class="actions">
         <button id="btn-mic" class="primary" type="button">🎤 Commencer la dictée</button>
-        <button id="btn-clear" class="ghost" type="button">🧹 Vider</button>
+        <button id="btn-add" class="secondary" type="button">➕ Ajouter au tableau</button>
       </div>
-      <p class="hint">Cliquez sur un champ puis sur "Dicter".</p>
+      <p class="hint">Dictez vos pièces, puis cliquez sur "Ajouter" pour compléter le tableau.</p>
     </section>
 
     <section class="card">
       <div class="card-head">
-        <h2>Tableau des pièces</h2>
-        <button id="btn-copy" class="ghost" type="button">📋 Copier JSON</button>
+        <h2>Inventaire des pièces</h2>
+        <button onclick="exportToJSON()" class="ghost">📋 Export JSON</button>
       </div>
       
       <div class="table-container">
         <table id="pieces-table">
           <thead>
             <tr>
-              <th>Bâtiment</th>
-              <th>Pièce</th>
-              <th style="width: 80px;">Actions</th>
+              <th>Localisation</th>
+              <th>Désignation Pièce</th>
+              <th style="width: 70px;">Actions</th>
             </tr>
           </thead>
           <tbody id="table-body">
