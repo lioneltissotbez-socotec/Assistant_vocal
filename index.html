@@ -1,34 +1,284 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-  <title>Saisie vocale – Pièces</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DiagVoice - Parsing Immobilier</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+            padding-bottom: 50px;
+        }
+
+        h1 { font-size: 1.2rem; text-align: center; color: var(--primary); }
+
+        /* UI Saisie */
+        .input-group {
+            background: var(--card);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 16px; /* Évite le zoom auto iOS */
+            box-sizing: border-box;
+            resize: none;
+            margin-bottom: 10px;
+        }
+
+        .actions { display: flex; gap: 10px; }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-analyze { background: var(--primary); color: white; }
+        .btn-clear { background: #e2e8f0; color: #64748b; }
+
+        /* Résultats */
+        .result-section { margin-top: 20px; }
+
+        .block-header {
+            background: #334155;
+            color: white;
+            padding: 12px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .room-list {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 0 0 8px 8px;
+        }
+
+        .room-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            gap: 10px;
+        }
+
+        .room-item:last-child { border-bottom: none; }
+
+        .editable {
+            flex: 1;
+            border: 1px transparent;
+            padding: 5px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .editable:focus { border-bottom: 1px dashed var(--primary); background: #f0f7ff; }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            padding: 5px;
+            opacity: 0.6;
+        }
+
+        /* Responsive spécifique gants */
+        @media (max-width: 600px) {
+            button { min-height: 60px; }
+            .room-item { min-height: 50px; }
+        }
+    </style>
 </head>
 <body>
-  <header class="app-header">
-    <div class="title">🎙️ Saisie vocale – Pièces</div>
-    <div class="subtitle">Bâtiment + Pièces (édition possible)</div>
-  </header>
 
-  <main class="app-main">
-    <section class="card">
-      <label for="raw-text">Texte dicté (micro clavier smartphone)</label>
-      <textarea id="raw-text" placeholder="Ex : Bâtiment A logement 2 nous avons une cuisine un séjour trois chambres"></textarea>
-      <div class="actions">
-        <button id="btn-parse" class="primary">🔎 Analyser</button>
-        <button id="btn-clear" class="ghost">🧹 Vider</button>
-      </div>
-    </section>
+    <h1>🏠 Assistant Vocal Liste des pièces v131708</h1>
 
-    <section class="card">
-      <h2>Résultat</h2>
-      <div id="result" class="result"></div>
-    </section>
-  </main>
+    <div class="input-group">
+        <textarea id="rawInput" placeholder="Dictez ici... ex: Bâtiment A logement 2 il y a une cuisine un séjour et trois chambres"></textarea>
+        <div class="actions">
+            <button class="btn-clear" onclick="clearAll()">Vider</button>
+            <button class="btn-analyze" onclick="processText()">Analyser</button>
+        </div>
+    </div>
 
-  <footer class="app-footer">Prototype terrain – offline</footer>
-  <script src="script.js"></script>
+    <div id="output" class="result-section">
+        </div>
+
+<script>
+/** * DICTIONNAIRES & CONFIGURATION
+ */
+const ROOM_DICT = {
+    "entree": "Entrée", "hall d’entree": "Entrée", "vestibule": "Entrée", "degagement": "Dégagement", "couloir": "Couloir",
+    "sejour": "Séjour", "salon": "Salon", "piece de vie": "Séjour", "living": "Séjour",
+    "salle a manger": "Salle à manger", "cuisine": "Cuisine", "kitchenette": "Cuisine",
+    "chambre": "Chambre", "suite parentale": "Chambre parentale", "bureau": "Bureau",
+    "salle de bain": "Salle de bain", "salle d’eau": "Salle d'eau", "wc": "WC", "toilettes": "WC",
+    "dressing": "Dressing", "placard": "Placard", "buanderie": "Buanderie", "cellier": "Cellier",
+    "grenier": "Grenier", "combles": "Combles", "cave": "Cave", "garage": "Garage",
+    "balcon": "Balcon", "terrasse": "Terrasse", "veranda": "Véranda",
+    "local technique": "Local Technique", "chaufferie": "Chaufferie", "archives": "Archives"
+};
+
+const NUMBERS = { "un": 1, "une": 1, "deux": 2, "trois": 3, "quatre": 4, "cinq": 5, "six": 6 };
+const SPLIT_TRIGGERS = ["nous avons", "il y a", "on a", "comprend", ":"];
+const PARASITES = ["alors", "donc", "voila", "bon", "ok", "euh", "hein", "hum", "ben", "ici", "la", "juste"];
+
+/** * LOGIQUE DE PARSING
+ */
+function normalize(txt) {
+    return txt.toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Supprime accents
+        .replace(/[sx]\b/g, "") // Supprime pluriels simples en fin de mot
+        .replace(/['']/g, " ") // Nettoie apostrophes
+        .trim();
+}
+
+function processText() {
+    const raw = document.getElementById('rawInput').value;
+    if (!raw) return;
+
+    let text = normalize(raw);
+    
+    // 1. Séparation Contexte / Pièces
+    let contextPart = "";
+    let roomsPart = text;
+
+    for (let trigger of SPLIT_TRIGGERS) {
+        if (text.includes(trigger)) {
+            let parts = text.split(trigger);
+            contextPart = parts[0];
+            roomsPart = parts.slice(1).join(" ");
+            break;
+        }
+    }
+
+    // Si pas de trigger, on cherche le premier nom de pièce pour séparer
+    if (!contextPart) {
+        const words = text.split(/\s+/);
+        for(let i=0; i<words.length; i++) {
+            if(ROOM_DICT[words[i]]) {
+                contextPart = words.slice(0, i).join(" ");
+                roomsPart = words.slice(i).join(" ");
+                break;
+            }
+        }
+    }
+
+    const finalContext = contextPart.trim() || "Non spécifié";
+    const foundRooms = parseRooms(roomsPart);
+
+    renderResults(finalContext, foundRooms);
+}
+
+function parseRooms(txt) {
+    const words = txt.split(/\s+/).filter(w => !PARASITES.includes(w));
+    let rooms = [];
+    let currentQty = 1;
+
+    for (let i = 0; i < words.length; i++) {
+        let word = words[i];
+        
+        // Est-ce un nombre ?
+        if (NUMBERS[word]) {
+            currentQty = NUMBERS[word];
+            continue;
+        }
+
+        // Test de correspondances (fenêtre glissante pour noms composés)
+        let found = null;
+        // Test 3 mots, puis 2, puis 1
+        for (let len = 3; len >= 1; len--) {
+            let phrase = words.slice(i, i + len).join(" ");
+            if (ROOM_DICT[phrase]) {
+                found = ROOM_DICT[phrase];
+                i += (len - 1);
+                break;
+            }
+        }
+
+        if (found) {
+            for (let q = 0; q < currentQty; q++) {
+                rooms.push(currentQty > 1 ? `${found} ${q + 1}` : found);
+            }
+            currentQty = 1; // Reset quantité après attribution
+        }
+    }
+    return rooms;
+}
+
+/** * RENDER & UI
+ */
+function renderResults(context, rooms) {
+    const container = document.getElementById('output');
+    
+    let html = `
+        <div class="block-header">
+            <span contenteditable="true" class="editable" id="ctx-val">${capitalize(context)}</span>
+            <span>✏️</span>
+        </div>
+        <div class="room-list">
+    `;
+
+    rooms.forEach((room, idx) => {
+        html += `
+            <div class="room-item">
+                <span>📍</span>
+                <span contenteditable="true" class="editable">${room}</span>
+                <button class="icon-btn">🎤</button>
+                <button class="icon-btn" onclick="this.parentElement.remove()">🗑️</button>
+            </div>
+        `;
+    });
+
+    html += `</div>
+        <button class="btn-analyze" style="margin-top:20px; background:#10b981" onclick="exportJSON()">Exporter JSON</button>
+    `;
+    
+    container.innerHTML = html;
+}
+
+function capitalize(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function clearAll() {
+    document.getElementById('rawInput').value = "";
+    document.getElementById('output').innerHTML = "";
+}
+
+function exportJSON() {
+    const context = document.getElementById('ctx-val').innerText;
+    const rooms = Array.from(document.querySelectorAll('.room-list .editable')).map(el => el.innerText);
+    const data = { contexte: context, pieces: rooms };
+    alert(JSON.stringify(data, null, 2));
+    console.log(data);
+}
+</script>
 </body>
 </html>
