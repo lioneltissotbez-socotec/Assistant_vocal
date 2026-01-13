@@ -3,47 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-  <title>Test saisie vocale – Pièces (LICIEL)</title>
+  <title>Saisie vocale – Pièces</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="app-header">
     <div class="title">🎙️ Saisie vocale – Pièces</div>
-    <div class="subtitle">Sortie structurée : <strong>Bâtiment</strong> + <strong>Pièces</strong></div>
+    <div class="subtitle">Bâtiment + Pièces (édition possible)</div>
   </header>
 
   <main class="app-main">
     <section class="card">
-      <label for="raw-text">Texte reconnu / à tester</label>
-
-      <div class="row">
-        <textarea id="raw-text" placeholder="Ex : Bâtiment A, logement 2, nous avons une cuisine, un séjour et deux chambres."></textarea>
-      </div>
-
+      <label for="raw-text">Texte dicté (micro clavier smartphone)</label>
+      <textarea id="raw-text" placeholder="Ex : Bâtiment A logement 2 nous avons une cuisine un séjour trois chambres"></textarea>
       <div class="actions">
-        <button id="btn-mic" class="primary" type="button">🎤 Dicter</button>
-        <button id="btn-parse" class="secondary" type="button">🔎 Analyser</button>
-        <button id="btn-clear" class="ghost" type="button">🧹 Vider</button>
+        <button id="btn-parse" class="primary">🔎 Analyser</button>
+        <button id="btn-clear" class="ghost">🧹 Vider</button>
       </div>
-
-      <p class="hint">
-        Astuce : commence par <em>“Bâtiment A”</em> / <em>“Logement 3”</em> / <em>“Appartement 12”</em>, puis <em>“nous avons …”</em>.
-      </p>
     </section>
 
     <section class="card">
-      <div class="card-head">
-        <h2>Résultat</h2>
-        <button id="btn-copy" class="ghost" type="button">📋 Copier JSON</button>
-      </div>
+      <h2>Résultat</h2>
       <div id="result" class="result"></div>
     </section>
   </main>
 
-  <footer class="app-footer">
-    <span>Prototype terrain – offline</span>
-  </footer>
-
+  <footer class="app-footer">Prototype terrain – offline</footer>
   <script src="script.js"></script>
 </body>
 </html>
