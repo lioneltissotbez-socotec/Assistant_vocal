@@ -1,49 +1,78 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-  <title>Test saisie vocale – Pièces (LICIEL)</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Dictée Diagnostic — Localisation + Pièces (Offline)</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <header class="app-header">
-    <div class="title">🎙️ Saisie vocale – Pièces</div>
-    <div class="subtitle">Sortie structurée : <strong>Bâtiment</strong> + <strong>Pièces</strong></div>
-  </header>
+  <div class="wrap">
+    <header class="top">
+      <div class="title">
+        <h1>Dictée diagnostic</h1>
+        <div class="subtitle">1 champ vocal • mots-clés <span class="kbd">localisation</span> puis <span class="kbd">il y a les pièces suivantes</span></div>
+      </div>
+      <div class="status" id="statusPill">Offline</div>
+    </header>
 
-  <main class="app-main">
     <section class="card">
-      <label for="raw-text">Texte reconnu / à tester</label>
+      <label for="voiceInput">Champ unique (dictée / collage)</label>
 
-      <div class="row">
-        <textarea id="raw-text" placeholder="Ex : Bâtiment A, logement 2, nous avons une cuisine, un séjour et deux chambres."></textarea>
+      <div class="inputRow">
+        <textarea id="voiceInput" placeholder="Ex:
+localisation, bâtiment A, logement 2, au rez-de-chaussée.
+il y a les pièces suivantes : une cuisine, un séjour, deux chambres, une salle de bain, deux WC séparés"></textarea>
+        <button class="iconBtn" id="btnClearText" title="Vider le champ">✕</button>
       </div>
 
-      <div class="actions">
-        <button id="btn-mic" class="primary" type="button">🎤 Dicter</button>
-        <button id="btn-parse" class="secondary" type="button">🔎 Analyser</button>
-        <button id="btn-clear" class="ghost" type="button">🧹 Vider</button>
+      <div class="btnRow">
+        <button class="btn mic" id="btnMic">🎤 Démarrer dictée</button>
+        <button class="btn secondary" id="btnStop" disabled>⏹️ Arrêter</button>
       </div>
 
-      <p class="hint">
-        Astuce : commence par <em>“Bâtiment A”</em> / <em>“Logement 3”</em> / <em>“Appartement 12”</em>, puis <em>“nous avons …”</em>.
-      </p>
+      <div class="btnRow">
+        <button class="btn" id="btnAdd">➕ Ajouter au tableau</button>
+        <button class="btn secondary" id="btnParse">🔎 Prévisualiser</button>
+      </div>
+
+      <div class="btnRow">
+        <button class="btn secondary" id="btnCopy">📋 Copier JSON</button>
+        <button class="btn secondary" id="btnCsv">⬇️ Export CSV</button>
+      </div>
+
+      <div class="hint">
+        Astuce : tu peux dicter “localisation …” puis “il y a les pièces suivantes …”.
+        Le tableau est cumulatif (tu changes de localisation et tu ajoutes).
+      </div>
+
+      <div class="preview">
+        <div class="pill">Localisation détectée : <span id="locPreview">—</span></div>
+        <div class="pill">Pièces détectées : <span id="countPreview">0</span></div>
+      </div>
     </section>
 
     <section class="card">
-      <div class="card-head">
-        <h2>Résultat</h2>
-        <button id="btn-copy" class="ghost" type="button">📋 Copier JSON</button>
+      <div class="tableHeader">
+        <div class="tableTitle">Tableau (éditable)</div>
+        <div class="tableActions">
+          <button class="btn danger small" id="btnClearTable">🧹 Vider tableau</button>
+        </div>
       </div>
-      <div id="result" class="result"></div>
+
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th style="width:52%">Localisation</th>
+            <th>Pièce</th>
+            <th style="width:120px">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
     </section>
-  </main>
+  </div>
 
-  <footer class="app-footer">
-    <span>Prototype terrain – offline</span>
-  </footer>
-
-  <script src="script.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
