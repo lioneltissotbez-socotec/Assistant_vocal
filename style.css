@@ -128,3 +128,20 @@ button:active{ transform:scale(.99); }
   70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
   100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
 }
+.row-stacked { display: flex; flex-direction: column; margin-bottom: 15px; }
+.input-field {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    font-size: 16px;
+    background: #f9fafb;
+}
+.recording {
+    background-color: #ef4444 !important; /* Rouge */
+    animation: blink 2s infinite;
+}
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
