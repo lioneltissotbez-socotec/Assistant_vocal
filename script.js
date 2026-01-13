@@ -1,16 +1,28 @@
+/* =====================================================
+   LOGIQUE DE SAISIE TERRAIN - LICIEL
+   ===================================================== */
+
 const btnMic = document.getElementById("btn-mic");
+const btnClear = document.getElementById("btn-clear");
 const rawText = document.getElementById("raw-text");
 const ctxText = document.getElementById("ctx-text");
-const result = document.getElementById("result");
+const tableBody = document.getElementById("table-body");
 
 let isListening = false;
-let activeInput = rawText; // Par défaut, écrit dans les pièces
+let activeInput = rawText; 
 
-// Détecter quel champ l'utilisateur a cliqué
+// Sélection du champ actif
 [ctxText, rawText].forEach(el => {
-    el.addEventListener('focus', () => activeInput = el);
+    el.addEventListener('focus', () => {
+        activeInput = el;
+        // Animation visuelle simple pour le champ actif
+        el.style.borderColor = "#2563eb";
+    });
+    el.addEventListener('blur', () => el.style.borderColor = "#d1d5db");
+    el.addEventListener('input', runParse); // Met à jour le tableau en temps réel
 });
 
+/* ===== MOTEUR DE RECONNAISSANCE ===== */
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 
@@ -18,66 +30,66 @@ if (SpeechRecognition) {
     recognition = new SpeechRecognition();
     recognition.lang = "fr-FR";
     recognition.continuous = true;
-    recognition.interimResults = false; // Désactivé pour éviter les doublons visuels
+    recognition.interimResults = false;
 
     recognition.onresult = (e) => {
-        let newText = "";
+        let finalSegment = "";
         for (let i = e.resultIndex; i < e.results.length; ++i) {
             if (e.results[i].isFinal) {
-                newText += e.results[i][0].transcript;
+                finalSegment += e.results[i][0].transcript;
             }
         }
         
-        if (newText) {
-            // Ajout propre sans répétition
+        if (finalSegment) {
             const currentVal = activeInput.value.trim();
-            activeInput.value = currentVal ? currentVal + ", " + newText.trim() : newText.trim();
-            runParse(); // Met à jour le rendu visuel
+            // On ajoute une virgule si c'est la liste des pièces
+            const separator = (activeInput === rawText && currentVal) ? ", " : " ";
+            activeInput.value = currentVal ? currentVal + separator + finalSegment.trim() : finalSegment.trim();
+            runParse();
         }
     };
 
-    recognition.onend = () => {
-        if (isListening) recognition.start(); // Relance si coupure accidentelle
-    };
+    recognition.onerror = (err) => console.error("Erreur Speech:", err.error);
+    recognition.onend = () => { if (isListening) recognition.start(); };
 }
 
 btnMic.addEventListener("click", () => {
     if (!isListening) {
         isListening = true;
-        recognition.start();
+        recognition && recognition.start();
         btnMic.textContent = "🛑 Arrêter l'écoute";
         btnMic.classList.add("recording");
     } else {
         isListening = false;
-        recognition.stop();
+        recognition && recognition.stop();
         btnMic.textContent = "🎤 Commencer la dictée";
         btnMic.classList.remove("recording");
     }
 });
 
-// PARSING SIMPLIFIÉ (car séparation des champs)
+btnClear.addEventListener("click", () => {
+    if(confirm("Voulez-vous tout effacer ?")) {
+        rawText.value = "";
+        ctxText.value = "";
+        runParse();
+    }
+});
+
+/* ===== PARSING & RENDU ===== */
 function runParse() {
-    const piecesStr = rawText.value;
-    const context = ctxText.value || "Non spécifié";
+    const context = ctxText.value.trim() || "Non défini";
+    const text = rawText.value || "";
     
-    // Nettoyage et découpage
-    const rawPieces = piecesStr.replace(/\bet\b/gi, ",").split(/[,.]+/);
+    // Nettoyage et split (par virgule, point, ou "et")
+    const rawPieces = text.replace(/\bet\b/gi, ",").split(/[,.]+/);
+    const cleanedPieces = rawPieces.map(p => p.trim()).filter(p => p.length > 1);
     
-    // Utilisation de votre logique expandQuantities existante
-    const expanded = expandQuantities(rawPieces.map(p => p.trim()).filter(p => p.length > 1));
+    // Expansion des quantités (ex: 2 chambres -> Chambre 1, Chambre 2)
+    const expanded = expandQuantities(cleanedPieces);
     
-    renderResult(context, expanded);
+    renderTable(context, expanded);
 }
 
-function renderResult(context, pieces) {
-    result.innerHTML = `
-        <div class="ctx">
-            <div class="ctx-title">📍 ${context} <span class="badge">${pieces.length}</span></div>
-            <ul>${pieces.map(p => `<li>${p}</li>`).join("")}</ul>
-        </div>`;
-}
-
-// Récupération de votre fonction de quantité
 function expandQuantities(items) {
     const out = [];
     const wordsToNum = { "un": 1, "une": 1, "deux": 2, "trois": 3, "quatre": 4, "cinq": 5 };
@@ -91,13 +103,37 @@ function expandQuantities(items) {
             const label = m[2].trim();
             if (qty > 1) {
                 const base = label.endsWith('s') ? label.slice(0, -1) : label;
-                for (let i = 1; i <= qty; i++) out.push(base.charAt(0).toUpperCase() + base.slice(1) + " " + i);
+                for (let i = 1; i <= qty; i++) out.push(capitalize(base) + " " + i);
             } else {
-                out.push(label.charAt(0).toUpperCase() + label.slice(1));
+                out.push(capitalize(label));
             }
         } else {
-            out.push(it.charAt(0).toUpperCase() + it.slice(1));
+            out.push(capitalize(it));
         }
     });
     return out;
 }
+
+function renderTable(context, pieces) {
+    tableBody.innerHTML = "";
+    pieces.forEach((piece, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td contenteditable="true" onblur="updateFromTable()">${context}</td>
+            <td contenteditable="true" onblur="updateFromTable()">${piece}</td>
+            <td class="cell-actions">
+                <button title="Ajouter descriptif" class="btn-tool">🎙️</button>
+                <button title="Modifier" class="btn-tool">✏️</button>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+// Fonction pour synchroniser les changements manuels du tableau vers les champs (optionnel)
+function updateFromTable() {
+    // Cette fonction peut être étendue pour sauvegarder les modifs manuelles dans un objet JS
+    console.log("Tableau mis à jour manuellement");
+}
+
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
