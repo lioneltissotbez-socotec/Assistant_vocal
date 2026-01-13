@@ -3,7 +3,7 @@
    ===================================================== */
 
 const btnMic = document.getElementById("btn-mic");
-const btnClear = document.getElementById("btn-clear");
+const btnAdd = document.getElementById("btn-add");
 const rawText = document.getElementById("raw-text");
 const ctxText = document.getElementById("ctx-text");
 const tableBody = document.getElementById("table-body");
@@ -11,18 +11,12 @@ const tableBody = document.getElementById("table-body");
 let isListening = false;
 let activeInput = rawText; 
 
-// Sélection du champ actif
+// Gestion du focus
 [ctxText, rawText].forEach(el => {
-    el.addEventListener('focus', () => {
-        activeInput = el;
-        // Animation visuelle simple pour le champ actif
-        el.style.borderColor = "#2563eb";
-    });
-    el.addEventListener('blur', () => el.style.borderColor = "#d1d5db");
-    el.addEventListener('input', runParse); // Met à jour le tableau en temps réel
+    el.addEventListener('focus', () => activeInput = el);
 });
 
-/* ===== MOTEUR DE RECONNAISSANCE ===== */
+/* ===== MOTEUR VOCAL (Correction répétitions) ===== */
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 
@@ -33,61 +27,87 @@ if (SpeechRecognition) {
     recognition.interimResults = false;
 
     recognition.onresult = (e) => {
-        let finalSegment = "";
+        let transcript = "";
         for (let i = e.resultIndex; i < e.results.length; ++i) {
-            if (e.results[i].isFinal) {
-                finalSegment += e.results[i][0].transcript;
-            }
+            if (e.results[i].isFinal) transcript += e.results[i][0].transcript;
         }
-        
-        if (finalSegment) {
+        if (transcript) {
             const currentVal = activeInput.value.trim();
-            // On ajoute une virgule si c'est la liste des pièces
-            const separator = (activeInput === rawText && currentVal) ? ", " : " ";
-            activeInput.value = currentVal ? currentVal + separator + finalSegment.trim() : finalSegment.trim();
-            runParse();
+            const sep = (activeInput === rawText && currentVal) ? ", " : " ";
+            activeInput.value = currentVal ? currentVal + sep + transcript.trim() : transcript.trim();
         }
     };
 
-    recognition.onerror = (err) => console.error("Erreur Speech:", err.error);
     recognition.onend = () => { if (isListening) recognition.start(); };
 }
 
+/* ===== ACTIONS ===== */
+
 btnMic.addEventListener("click", () => {
-    if (!isListening) {
-        isListening = true;
+    isListening = !isListening;
+    if (isListening) {
         recognition && recognition.start();
         btnMic.textContent = "🛑 Arrêter l'écoute";
         btnMic.classList.add("recording");
     } else {
-        isListening = false;
         recognition && recognition.stop();
         btnMic.textContent = "🎤 Commencer la dictée";
         btnMic.classList.remove("recording");
     }
 });
 
-btnClear.addEventListener("click", () => {
-    if(confirm("Voulez-vous tout effacer ?")) {
-        rawText.value = "";
-        ctxText.value = "";
-        runParse();
+// Vider un champ spécifique
+function clearField(id) {
+    document.getElementById(id).value = "";
+}
+
+// Ajouter les données au tableau (Cumulatif)
+btnAdd.addEventListener("click", () => {
+    const rawContext = ctxText.value.trim();
+    const rawPiecesText = rawText.value.trim();
+
+    if (!rawContext || !rawPiecesText) {
+        alert("Veuillez remplir le bâtiment et au moins une pièce.");
+        return;
     }
+
+    // 1. Formatage du contexte (Bâtiment A - Logement 2)
+    const formattedContext = formatContext(rawContext);
+
+    // 2. Parsing des pièces et quantités
+    const piecesList = rawPiecesText.replace(/\bet\b/gi, ",").split(/[,.]+/);
+    const expandedPieces = expandQuantities(piecesList.map(p => p.trim()).filter(p => p.length > 0));
+
+    // 3. Ajout au tableau (append)
+    expandedPieces.forEach(piece => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td contenteditable="true">${formattedContext}</td>
+            <td contenteditable="true">${piece}</td>
+            <td class="cell-actions">
+                <button class="btn-tool" onclick="this.parentElement.parentElement.remove()">🗑️</button>
+                <button class="btn-tool">🎙️</button>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+
+    // Nettoyage automatique du champ pièces après ajout (on garde souvent le bâtiment)
+    rawText.value = "";
 });
 
-/* ===== PARSING & RENDU ===== */
-function runParse() {
-    const context = ctxText.value.trim() || "Non défini";
-    const text = rawText.value || "";
-    
-    // Nettoyage et split (par virgule, point, ou "et")
-    const rawPieces = text.replace(/\bet\b/gi, ",").split(/[,.]+/);
-    const cleanedPieces = rawPieces.map(p => p.trim()).filter(p => p.length > 1);
-    
-    // Expansion des quantités (ex: 2 chambres -> Chambre 1, Chambre 2)
-    const expanded = expandQuantities(cleanedPieces);
-    
-    renderTable(context, expanded);
+/* ===== HELPERS DE FORMATAGE ===== */
+
+function formatContext(text) {
+    // Transforme "Batiment A logement 2 rez de chaussée" en "Bâtiment A - Logement 2 - Rez-de-chaussée"
+    return text
+        .replace(/\b(bâtiment|batiment)\b/gi, "Bâtiment")
+        .replace(/\b(logement)\b/gi, "- Logement")
+        .replace(/\b(rez de chaussée|rdc|rez-de-chaussée)\b/gi, "- RDC")
+        .replace(/\b(appartement|apt)\b/gi, "- Apt")
+        .replace(/\s+-\s+/g, " - ") // Nettoie les doubles espaces autour des tirets
+        .replace(/^- /, "") // Enlever tiret initial si présent
+        .trim();
 }
 
 function expandQuantities(items) {
@@ -95,7 +115,8 @@ function expandQuantities(items) {
     const wordsToNum = { "un": 1, "une": 1, "deux": 2, "trois": 3, "quatre": 4, "cinq": 5 };
 
     items.forEach(it => {
-        const t = it.toLowerCase().trim();
+        const t = it.toLowerCase();
+        // Capture : (chiffre ou mot) + (nom de la pièce)
         const m = t.match(/^(\d+|un|une|deux|trois|quatre|cinq)\s+(.+)$/i);
 
         if (m) {
@@ -114,26 +135,14 @@ function expandQuantities(items) {
     return out;
 }
 
-function renderTable(context, pieces) {
-    tableBody.innerHTML = "";
-    pieces.forEach((piece, index) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td contenteditable="true" onblur="updateFromTable()">${context}</td>
-            <td contenteditable="true" onblur="updateFromTable()">${piece}</td>
-            <td class="cell-actions">
-                <button title="Ajouter descriptif" class="btn-tool">🎙️</button>
-                <button title="Modifier" class="btn-tool">✏️</button>
-            </td>
-        `;
-        tableBody.appendChild(row);
-    });
-}
-
-// Fonction pour synchroniser les changements manuels du tableau vers les champs (optionnel)
-function updateFromTable() {
-    // Cette fonction peut être étendue pour sauvegarder les modifs manuelles dans un objet JS
-    console.log("Tableau mis à jour manuellement");
-}
-
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function exportToJSON() {
+    const rows = Array.from(tableBody.querySelectorAll("tr"));
+    const data = rows.map(r => ({
+        location: r.cells[0].innerText,
+        piece: r.cells[1].innerText
+    }));
+    console.log(data);
+    alert("Données prêtes pour l'export console");
+}
